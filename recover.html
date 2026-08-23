@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>在庫データ復旧ツール</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:#f7f3ec; color:#2f2820; font-family:'Hiragino Sans',system-ui,sans-serif; padding:24px 18px 60px; -webkit-text-size-adjust:100%; }
+  h1 { font-size:22px; font-weight:800; margin-bottom:6px; }
+  .lead { font-size:14px; color:#7a6f62; margin-bottom:20px; line-height:1.6; }
+  .card { background:#fff; border:1px solid #ece4d6; border-radius:16px; padding:16px; margin-bottom:16px; }
+  .card h2 { font-size:16px; font-weight:800; margin-bottom:10px; }
+  .stat { font-size:14px; line-height:1.9; color:#3d332a; }
+  .stat b { color:#8B5E3C; }
+  button { width:100%; border:none; border-radius:12px; padding:15px; font-size:16px; font-weight:800; margin-top:10px; }
+  .primary { background:#3d332a; color:#fff; }
+  .sub { background:#fff; color:#3d332a; border:1.5px solid #d9cdbb; }
+  .good { background:#2f6d4f; color:#fff; }
+  pre { background:#faf7f1; border:1px solid #efe7d8; border-radius:10px; padding:12px; font-size:11px; line-height:1.5; overflow:auto; max-height:280px; white-space:pre-wrap; word-break:break-all; margin-top:10px; }
+  .note { font-size:12.5px; color:#9a8f82; margin-top:8px; line-height:1.6; }
+  .warn { color:#b23b3b; font-weight:700; }
+</style>
+</head>
+<body>
+<h1>在庫データ復旧ツール</h1>
+<p class="lead">このiPadに保存されている在庫データを確認します。消えた「弓」のデータが残っているか調べ、見つかれば救出できます。</p>
+
+<div class="card">
+  <h2>1. 今の保存状況</h2>
+  <div class="stat" id="stats">読み込み中…</div>
+</div>
+
+<div class="card">
+  <h2>2. 古いデータ(弓を含む可能性)の中身</h2>
+  <p class="note">下のボタンで、消えた弓が古いデータ(v2)に残っているか確認します。</p>
+  <button class="sub" onclick="showV2()">古いデータ(v2)の中身を表示</button>
+  <button class="sub" onclick="showCats()" style="margin-top:8px">保存されている全カテゴリーを表示</button>
+  <pre id="dump" style="display:none"></pre>
+</div>
+
+<div class="card">
+  <h2>3. 救出（バックアップとして書き出す）</h2>
+  <p class="note">古いデータ(v2)と、あなたが作ったカテゴリー(弓を含む)を、まとめて1つの復元用ファイルに書き出します。これを在庫アプリの「復元」ボタンで読み込めば、弓のカテゴリーとデータが戻ります。</p>
+  <button class="good" onclick="rescue()">救出ファイルを書き出す</button>
+  <div class="note" id="rescueMsg"></div>
+</div>
+
+<script>
+function safeParse(s){ try { return JSON.parse(s); } catch { return null; } }
+
+function refreshStats(){
+  const v2 = safeParse(localStorage.getItem("violin_inventory_v2"));
+  const v3 = safeParse(localStorage.getItem("violin_inventory_v3"));
+  const cats = safeParse(localStorage.getItem("violin_categories_v1"));
+  const el = document.getElementById("stats");
+  let html = "";
+  html += "古いデータ(v2)：<b>" + (Array.isArray(v2) ? v2.length + " 件" : "なし") + "</b><br>";
+  html += "現在のデータ(v3)：<b>" + (Array.isArray(v3) ? v3.length + " 件" : "なし") + "</b><br>";
+  html += "追加カテゴリー：<b>" + (Array.isArray(cats) ? cats.map(c=>c.label).join("、") || "なし" : "なし") + "</b>";
+  // v2内の分類ごと件数
+  if(Array.isArray(v2) && v2.length){
+    const byCat = {};
+    v2.forEach(it=>{ byCat[it.category] = (byCat[it.category]||0)+1; });
+    html += "<br><br>古いデータの分類別件数：<br>";
+    Object.keys(byCat).forEach(k=>{ html += "・" + k + "：" + byCat[k] + "件<br>"; });
+  }
+  el.innerHTML = html;
+}
+
+function showV2(){
+  const v2 = safeParse(localStorage.getItem("violin_inventory_v2"));
+  const pre = document.getElementById("dump");
+  pre.style.display = "block";
+  if(!Array.isArray(v2) || v2.length===0){ pre.textContent = "古いデータ(v2)は見つかりませんでした。"; return; }
+  pre.textContent = v2.map(it => `・${it.name}｜分類:${it.category}｜サイズ:${it.size||"none"}｜在庫:${it.qty}｜最低:${it.min}`).join("\n");
+}
+
+function showCats(){
+  const cats = safeParse(localStorage.getItem("violin_categories_v1"));
+  const pre = document.getElementById("dump");
+  pre.style.display = "block";
+  if(!Array.isArray(cats) || cats.length===0){ pre.textContent = "追加カテゴリーは保存されていません。"; return; }
+  pre.textContent = cats.map(c => `・${c.label}（id:${c.id}）`).join("\n");
+}
+
+function rescue(){
+  const v2 = safeParse(localStorage.getItem("violin_inventory_v2"));
+  const cats = safeParse(localStorage.getItem("violin_categories_v1")) || [];
+  if(!Array.isArray(v2) || v2.length===0){
+    document.getElementById("rescueMsg").innerHTML = '<span class="warn">古いデータ(v2)が見つからないため、救出できませんでした。</span>';
+    return;
+  }
+  // 在庫アプリの復元が読める形（旧形式itemsとして書き出す。復元側が新形式へ変換する）
+  const data = { app:"violin-stock", version:2, savedAt:new Date().toISOString(), items:v2, categories:cats };
+  const blob = new Blob([JSON.stringify(data)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const d = new Date();
+  const p = n => String(n).padStart(2,"0");
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `工房在庫_救出_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  document.getElementById("rescueMsg").innerHTML = '救出ファイルを書き出しました。<br>次にアプリを開き「復元」ボタンからこのファイルを読み込んでください。弓のカテゴリーとデータが戻ります。';
+}
+
+refreshStats();
+</script>
+</body>
+</html>
