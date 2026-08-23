@@ -86,6 +86,7 @@
   .field { width:100%; border:1.5px solid #e2d8c8; border-radius:12px; padding:13px 15px; font-size:17px; outline:none; background:#fff; color:#2f2820; }
   .optGrid { display:flex; flex-wrap:wrap; gap:8px; }
   .opt { border:1.5px solid #e2d8c8; background:#fff; color:#6e6259; border-radius:10px; padding:10px 16px; font-size:15px; font-weight:700; }
+  .optAdd { border-style:dashed; color:#8a7d6d; }
   .row { display:flex; gap:14px; }
   .numField { display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid #e2d8c8; border-radius:12px; padding:5px; }
   .numBtn { width:42px; height:42px; border-radius:9px; border:none; background:#f0e9dd; color:#3d332a; display:flex; align-items:center; justify-content:center; }
@@ -141,7 +142,7 @@ const ic = {
 };
 
 // ── カテゴリー ─────────────────────────
-const CATEGORIES = [
+const BASE_CATEGORIES = [
   { id:"koma", label:"駒", color:"#8B5E3C" },
   { id:"gen", label:"弦", color:"#C08457" },
   { id:"kataate", label:"肩当て", color:"#6B7A5A" },
@@ -150,7 +151,20 @@ const CATEGORIES = [
   { id:"adjuster", label:"アジャスター", color:"#9A7B4F" },
   { id:"other", label:"その他", color:"#6E6259" },
 ];
-const catById = id => CATEGORIES.find(c=>c.id===id) || CATEGORIES[6];
+// ユーザー追加分類用の色パレット(順番に割り当て)
+const CAT_COLORS = ["#5B7B8A","#8A5B7B","#7B8A5B","#8A785B","#5B8A78","#785B8A","#8A5B5B","#5B6E8A"];
+const CAT_KEY = "violin_categories_v1";
+const loadCats = () => { try { return JSON.parse(localStorage.getItem(CAT_KEY)) || []; } catch { return []; } };
+const saveCats = arr => { try { localStorage.setItem(CAT_KEY, JSON.stringify(arr)); } catch(e){ console.error(e); } };
+// 「その他」より前にユーザー分類を挟む(その他は常に末尾)
+function buildCategories(){
+  const user = loadCats();
+  const base = BASE_CATEGORIES.filter(c=>c.id!=="other");
+  const other = BASE_CATEGORIES.find(c=>c.id==="other");
+  return [...base, ...user, other];
+}
+let CATEGORIES = buildCategories();
+const catById = id => CATEGORIES.find(c=>c.id===id) || CATEGORIES.find(c=>c.id==="other");
 
 // ── サイズ ─────────────────────────
 const SIZES = [
@@ -307,6 +321,7 @@ function modalHtml(){
           <label class="lb">種類</label>
           <div class="optGrid" id="catGrid">
             ${CATEGORIES.map(c=>`<button class="opt" data-c="${c.id}" style="${d.category===c.id?`background:${c.color};color:#fff;border-color:${c.color}`:""}">${c.label}</button>`).join("")}
+            <button class="opt optAdd" id="addCatBtn">＋ 種類を追加</button>
           </div>
 
           <label class="lb">サイズ</label>
@@ -394,7 +409,7 @@ function exportXlsx(){
 
 // ── バックアップ(JSON書き出し) ─────────────────────────
 function backupJson(){
-  const data = { app:"violin-stock", version:2, savedAt:new Date().toISOString(), items:state.items };
+  const data = { app:"violin-stock", version:2, savedAt:new Date().toISOString(), items:state.items, categories:loadCats() };
   const blob = new Blob([JSON.stringify(data)], { type:"application/json" });
   const url = URL.createObjectURL(blob);
   const d = new Date();
@@ -427,6 +442,12 @@ function restoreJson(file){
         photo: it.photo || null,
       }));
       if(!confirm(`このバックアップ(${clean.length}件)で今の在庫を置き換えます。よろしいですか?`)) return;
+      // ユーザー追加分類も復元(あれば)
+      if(Array.isArray(data.categories)){
+        const cats = data.categories.filter(c=>c&&c.id&&c.label).map(c=>({ id:String(c.id), label:String(c.label), color:c.color||"#5B7B8A" }));
+        saveCats(cats);
+        CATEGORIES = buildCategories();
+      }
       state.items = clean;
       save();
       render();
@@ -470,6 +491,20 @@ function bind(){
     q("closeModal").onclick = q("cancelBtn").onclick = () => { state.modal=false; render(); };
     q("dName").oninput = e => { state.draft.name=e.target.value; q("saveBtn").disabled=!e.target.value.trim(); };
     document.querySelectorAll("[data-c]").forEach(b=> b.onclick=()=>{ state.draft.category=b.dataset.c; render(); });
+    q("addCatBtn").onclick = () => {
+      const name = (prompt("追加する種類の名前を入力してください（例：あご当て、松脂、弓）") || "").trim();
+      if(!name) return;
+      // 同名チェック
+      const dup = CATEGORIES.find(c=>c.label===name);
+      if(dup){ state.draft.category = dup.id; render(); return; }
+      const user = loadCats();
+      const newCat = { id:"u"+uid(), label:name, color:CAT_COLORS[user.length % CAT_COLORS.length] };
+      user.push(newCat);
+      saveCats(user);
+      CATEGORIES = buildCategories();
+      state.draft.category = newCat.id;
+      render();
+    };
     document.querySelectorAll("[data-s]").forEach(b=> b.onclick=()=>{ state.draft.size=b.dataset.s; render(); });
     q("dQty").oninput = e => state.draft.qty = e.target.value;
     q("dMin").oninput = e => state.draft.min = e.target.value;
