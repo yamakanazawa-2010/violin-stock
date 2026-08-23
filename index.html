@@ -37,40 +37,47 @@
   .filterLabel { font-size:12px; font-weight:800; color:#a89b8c; letter-spacing:.08em; padding:16px 20px 0; }
   .chips { display:flex; gap:8px; overflow-x:auto; padding:8px 20px 0; }
   .chip { flex-shrink:0; background:#fff; border:1.5px solid #e7ded0; color:#6e6259; border-radius:999px; padding:9px 18px; font-size:15px; font-weight:700; white-space:nowrap; }
-  .sizeChip { flex-shrink:0; background:#fff; border:1.5px solid #e7ded0; color:#6e6259; border-radius:999px; padding:9px 16px; font-size:15px; font-weight:800; white-space:nowrap; min-width:52px; }
+  /* サイズチップを約2倍に拡大 */
+  .sizeChip { flex-shrink:0; background:#fff; border:2px solid #e7ded0; color:#6e6259; border-radius:14px; padding:14px 24px; font-size:24px; font-weight:800; white-space:nowrap; min-width:82px; }
 
   .list { display:flex; flex-direction:column; gap:12px; padding:16px 20px 0; }
-  .card { position:relative; display:flex; align-items:center; gap:14px; background:#fff; border:1px solid #ece4d6; border-radius:18px; padding:14px 16px; box-shadow:0 1px 3px rgba(61,51,42,.06); }
+  .card { position:relative; display:flex; align-items:flex-start; gap:14px; background:#fff; border:1px solid #ece4d6; border-radius:18px; padding:14px 16px; box-shadow:0 1px 3px rgba(61,51,42,.06); }
   .card.low { border-color:#f0d0a0; background:#fffdf8; }
-  .card.out { border-color:#e6b3b3; background:#fef7f6; }
   .leftCol { display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; }
   .thumb { width:62px; height:62px; border-radius:12px; overflow:hidden; flex-shrink:0; }
-  .thumbBtn { border:none; padding:0; background:transparent; cursor:pointer; }
+  .thumbBtn { border:none; padding:0; background:transparent; }
   .thumb img { width:100%; height:100%; object-fit:cover; }
   .thumbPh { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:26px; font-weight:800; }
   .editBtn { display:flex; align-items:center; justify-content:center; gap:3px; width:62px; padding:5px 0; border-radius:8px; border:1px solid #dfe0d6; background:#fff; color:#6b7a5a; font-size:11px; font-weight:700; }
   .editBtn:active { background:#eef1e6; color:#4e5c3f; }
+  .delBtn { display:flex; align-items:center; justify-content:center; gap:3px; width:62px; padding:5px 0; border-radius:8px; border:1px solid #ecdada; background:#fff; color:#b07a7a; font-size:11px; font-weight:700; }
+  .delBtn:active { background:#fadede; color:#b23b3b; }
   .body { flex:1; min-width:0; }
-  .cardTop { display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
   .condRow { display:flex; gap:5px; margin-bottom:5px; }
   .condNew { font-size:11px; font-weight:800; color:#fff; background:#2f6d4f; border-radius:6px; padding:1.5px 8px; }
   .condUsed { font-size:11px; font-weight:800; color:#fff; background:#a97442; border-radius:6px; padding:1.5px 8px; }
+  .cardTop { display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
   .catTag { font-size:11.5px; font-weight:800; border:1.2px solid; border-radius:6px; padding:1px 7px; }
-  .sizeTag { font-size:11.5px; font-weight:800; color:#3d332a; background:#efe7d8; border-radius:6px; padding:1px 8px; }
-  .statusLow { font-size:11.5px; font-weight:800; color:#c07a1e; background:#fbe9d6; border-radius:6px; padding:1px 7px; }
-  .statusOut { font-size:11.5px; font-weight:800; color:#b23b3b; background:#fadede; border-radius:6px; padding:1px 7px; }
-  .name { margin:2px 0; font-size:17px; font-weight:700; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .minText { font-size:12.5px; color:#9a8f82; }
-  .counter { display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; }
-  .counterRow { display:flex; align-items:center; gap:4px; }
-  .stepBtn { width:48px; height:48px; border-radius:12px; border:none; background:#f0e9dd; color:#3d332a; display:flex; align-items:center; justify-content:center; }
+  .totalTag { font-size:11.5px; font-weight:800; color:#3d332a; background:#efe7d8; border-radius:6px; padding:1px 8px; }
+  .name { margin:2px 0 8px; font-size:18px; font-weight:700; line-height:1.3; }
+
+  /* サイズ別在庫の行 */
+  .sizeRows { display:flex; flex-direction:column; gap:8px; }
+  .sizeRow { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#faf7f1; border:1px solid #efe7d8; border-radius:12px; padding:8px 10px; }
+  .sizeRow.low { background:#fffaf0; border-color:#f0d8b0; }
+  .sizeRow.out { background:#fbf3f3; border-color:#eccccc; }
+  .sizeRowLabel { display:flex; align-items:center; gap:8px; min-width:0; }
+  .sizeRowSize { font-size:20px; font-weight:800; color:#3d332a; min-width:52px; }
+  .sizeRowMin { font-size:11px; color:#9a8f82; }
+  .rowCounter { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+  .stepBtn { width:44px; height:44px; border-radius:11px; border:none; background:#f0e9dd; color:#3d332a; display:flex; align-items:center; justify-content:center; }
   .stepBtn:disabled { opacity:.4; }
-  .qtyBox { display:flex; flex-direction:column; align-items:center; min-width:52px; }
-  .qtyNum { font-size:28px; font-weight:800; line-height:1; }
-  .qtyUnit { font-size:11px; color:#9a8f82; margin-top:1px; }
-  .bulkBtn { border:none; background:transparent; color:#8a7d6d; font-size:12px; font-weight:700; text-decoration:underline; padding:2px 4px; }
-  .delBtn { display:flex; align-items:center; justify-content:center; gap:3px; width:62px; padding:5px 0; border-radius:8px; border:1px solid #ecdada; background:#fff; color:#b07a7a; font-size:11px; font-weight:700; }
-  .delBtn:active { background:#fadede; color:#b23b3b; }
+  .qtyBox { display:flex; flex-direction:column; align-items:center; min-width:46px; }
+  .qtyNum { font-size:24px; font-weight:800; line-height:1; }
+  .qtyUnit { font-size:10px; color:#9a8f82; margin-top:1px; }
+  .rowActions { display:flex; gap:10px; margin-top:8px; padding-left:2px; }
+  .bulkBtn { border:none; background:transparent; color:#8a7d6d; font-size:12.5px; font-weight:700; text-decoration:underline; padding:2px 0; }
+
   .empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; text-align:center; color:#9a8f82; }
   .empty p.t { margin:12px 0 4px; font-weight:600; color:#6e6259; }
 
@@ -92,15 +99,24 @@
   .optAdd { border-style:dashed; color:#8a7d6d; }
   .condOpt.on-new { background:#2f6d4f; color:#fff; border-color:#2f6d4f; }
   .condOpt.on-used { background:#a97442; color:#fff; border-color:#a97442; }
-  .row { display:flex; gap:14px; }
-  .numField { display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid #e2d8c8; border-radius:12px; padding:5px; }
-  .numBtn { width:42px; height:42px; border-radius:9px; border:none; background:#f0e9dd; color:#3d332a; display:flex; align-items:center; justify-content:center; }
-  .numInput { flex:1; width:100%; min-width:0; border:none; outline:none; text-align:center; font-size:20px; font-weight:800; background:transparent; color:#2f2820; }
+
+  /* モーダル内サイズ別入力（拡大） */
+  .sizeEditList { display:flex; flex-direction:column; gap:10px; }
+  .sizeEditRow { display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid #e2d8c8; border-radius:12px; padding:8px 10px; }
+  .sizeEditRow.off { opacity:.5; }
+  .sizeEditTop { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+  .sizeToggle { width:64px; padding:12px 0; border-radius:10px; border:1.5px solid #e2d8c8; background:#fff; color:#6e6259; font-size:22px; font-weight:800; flex-shrink:0; }
+  .sizeToggle.on { background:#3d332a; color:#fff; border-color:#3d332a; }
+  .sizeEditFields { display:flex; gap:8px; flex:1; }
+  .miniField { flex:1; min-width:0; }
+  .miniField .k { font-size:10.5px; color:#9a8f82; margin-bottom:3px; }
+  .numField { display:flex; align-items:center; gap:6px; background:#faf7f1; border:1.5px solid #e2d8c8; border-radius:10px; padding:4px; }
+  .numBtn { width:38px; height:38px; border-radius:9px; border:none; background:#f0e9dd; color:#3d332a; display:flex; align-items:center; justify-content:center; }
+  .numInput { flex:1; width:100%; min-width:0; border:none; outline:none; text-align:center; font-size:18px; font-weight:800; background:transparent; color:#2f2820; }
   .cancelBtn { flex:1; border:1.5px solid #d9cdbb; background:transparent; color:#6e6259; border-radius:14px; padding:15px; font-size:17px; font-weight:700; }
   .saveBtn { flex:2; border:none; background:#3d332a; color:#fff; border-radius:14px; padding:15px; font-size:17px; font-weight:800; }
   .saveBtn:disabled { opacity:.4; }
 
-  /* まとめて入出庫モーダル */
   .bulkModal { background:#f7f3ec; border-radius:24px; width:calc(100% - 40px); max-width:420px; box-shadow:0 8px 30px rgba(0,0,0,.25); padding:22px; }
   .bulkName { font-size:18px; font-weight:800; margin-bottom:4px; }
   .bulkCur { font-size:13px; color:#7a6f62; margin-bottom:16px; }
@@ -108,9 +124,12 @@
   .bulkTgBtn { flex:1; border:1.5px solid #e2d8c8; background:#fff; color:#6e6259; border-radius:12px; padding:12px; font-size:15px; font-weight:800; }
   .bulkTgBtn.on-in { background:#2f6d4f; color:#fff; border-color:#2f6d4f; }
   .bulkTgBtn.on-out { background:#b23b3b; color:#fff; border-color:#b23b3b; }
+  .bulkSizePick { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+  .bulkSizeOpt { border:1.5px solid #e2d8c8; background:#fff; color:#6e6259; border-radius:10px; padding:10px 16px; font-size:18px; font-weight:800; }
+  .bulkSizeOpt.on { background:#3d332a; color:#fff; border-color:#3d332a; }
   .bulkPreview { text-align:center; font-size:14px; color:#7a6f62; margin-top:14px; }
   .bulkPreview b { font-size:20px; color:#2f2820; }
-  .overlayCenter { position:fixed; inset:0; background:rgba(47,40,32,.5); display:flex; align-items:center; justify-content:center; z-index:110; }
+  .overlayCenter { position:fixed; inset:0; background:rgba(47,40,32,.5); display:flex; align-items:center; justify-content:center; z-index:110; padding:20px; }
   svg { display:block; }
 </style>
 </head>
@@ -127,10 +146,9 @@ document.addEventListener("touchend", e => {
   if (now - __lastTouch <= 350) { e.preventDefault(); }
   __lastTouch = now;
 }, { passive:false });
-// ピンチ拡大の抑止
 document.addEventListener("gesturestart", e => e.preventDefault());
 
-// ── アイコン(inline SVG) ─────────────────────────
+// ── アイコン ─────────────────────────
 const ic = {
   plus:(s=22,w=2.5)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
   minus:(s=26,w=3)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round"><path d="M5 12h14"/></svg>`,
@@ -156,12 +174,10 @@ const BASE_CATEGORIES = [
   { id:"adjuster", label:"アジャスター", color:"#9A7B4F" },
   { id:"other", label:"その他", color:"#6E6259" },
 ];
-// ユーザー追加分類用の色パレット(順番に割り当て)
 const CAT_COLORS = ["#5B7B8A","#8A5B7B","#7B8A5B","#8A785B","#5B8A78","#785B8A","#8A5B5B","#5B6E8A"];
 const CAT_KEY = "violin_categories_v1";
 const loadCats = () => { try { return JSON.parse(localStorage.getItem(CAT_KEY)) || []; } catch { return []; } };
 const saveCats = arr => { try { localStorage.setItem(CAT_KEY, JSON.stringify(arr)); } catch(e){ console.error(e); } };
-// 「その他」より前にユーザー分類を挟む(その他は常に末尾)
 function buildCategories(){
   const user = loadCats();
   const base = BASE_CATEGORIES.filter(c=>c.id!=="other");
@@ -182,35 +198,63 @@ const SIZES = [
 ];
 const sizeLabel = id => (SIZES.find(s=>s.id===id) || {label:"指定なし"}).label;
 
-// ── データ保存(localStorage) ─────────────────────────
-const KEY = "violin_inventory_v2";
+// ── データ保存 ─────────────────────────
+// 新モデル: 各アイテムは stocks:[{size, qty, min}] を持つ(サイズ別在庫)
+const KEY = "violin_inventory_v3";
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch { return null; } };
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state.items)); } catch(e){ console.error(e); } };
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
 const SEED = [
-  { id:"s1", name:"Aubert 駒 (フランス製)", category:"koma", size:"4/4", qty:12, min:3, photo:null },
-  { id:"s2", name:"Dominant A線", category:"gen", size:"none", qty:8, min:4, photo:null },
-  { id:"s3", name:"Kun 肩当て", category:"kataate", size:"4/4", qty:2, min:2, photo:null },
-  { id:"s4", name:"黒檀ペグ 4本セット", category:"peg", size:"3/4", qty:5, min:2, photo:null },
+  { id:"s1", name:"Aubert 駒 (フランス製)", category:"koma", condNew:true, condUsed:false, photo:null,
+    stocks:[ {size:"4/4",qty:12,min:3}, {size:"3/4",qty:4,min:2}, {size:"1/2",qty:2,min:2} ] },
+  { id:"s2", name:"Dominant A線", category:"gen", condNew:true, condUsed:false, photo:null,
+    stocks:[ {size:"none",qty:8,min:4} ] },
+  { id:"s3", name:"Kun 肩当て", category:"kataate", condNew:false, condUsed:true, photo:null,
+    stocks:[ {size:"4/4",qty:2,min:2} ] },
 ];
 
-const state = { items: load() ?? SEED, filter:"all", sizeFilter:"all", search:"", modal:false, draft:null, bulk:null };
+// 旧v2データがあれば新モデルへ移行
+function migrateV2(){
+  try {
+    const old = JSON.parse(localStorage.getItem("violin_inventory_v2"));
+    if(!Array.isArray(old) || old.length===0) return null;
+    // 同名・同分類・同新品中古はまとめる
+    const map = {};
+    old.forEach(it => {
+      const key = `${it.name}||${it.category}||${it.condNew?1:0}||${it.condUsed?1:0}`;
+      if(!map[key]){
+        map[key] = { id:uid(), name:it.name, category:it.category, condNew:!!it.condNew, condUsed:!!it.condUsed, photo:it.photo||null, stocks:[] };
+      }
+      map[key].stocks.push({ size:it.size||"none", qty:+it.qty||0, min:+it.min||0 });
+    });
+    return Object.values(map);
+  } catch { return null; }
+}
+
+let __init = load();
+if(!__init){ const m = migrateV2(); __init = m || SEED; }
+const state = { items: __init, filter:"all", sizeFilter:"all", search:"", modal:false, draft:null, bulk:null };
 if(!load()) save();
 
 const esc = s => String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+
+// アイテムの合計在庫・要補充判定
+const itemTotal = it => (it.stocks||[]).reduce((s,r)=>s+(+r.qty||0),0);
+const itemLow = it => (it.stocks||[]).some(r => (+r.qty||0) <= (+r.min||0));
 
 // ── 描画 ─────────────────────────
 function render(){
   const app = document.getElementById("app");
   const items = state.items;
-  const low = items.filter(i=>i.qty<=i.min).length;
-  const total = items.reduce((s,i)=>s+i.qty,0);
-  const filtered = items.filter(i =>
-    (state.filter==="all" || i.category===state.filter) &&
-    (state.sizeFilter==="all" || (i.size||"none")===state.sizeFilter) &&
-    i.name.toLowerCase().includes(state.search.toLowerCase())
-  );
+  const lowCount = items.filter(itemLow).length;
+  const total = items.reduce((s,it)=>s+itemTotal(it),0);
+  const filtered = items.filter(it => {
+    if(state.filter!=="all" && it.category!==state.filter) return false;
+    if(state.sizeFilter!=="all" && !(it.stocks||[]).some(r=>(r.size||"none")===state.sizeFilter)) return false;
+    if(!it.name.toLowerCase().includes(state.search.toLowerCase())) return false;
+    return true;
+  });
 
   app.innerHTML = `
     <div class="wrap">
@@ -219,7 +263,7 @@ function render(){
           <h1>工房パーツ在庫</h1>
           <div class="sub">
             ${items.length} 種類 ・ 合計 ${total} 個
-            ${low>0 ? `<span class="lowBadge">${ic.warn()} 要補充 ${low}</span>` : ""}
+            ${lowCount>0 ? `<span class="lowBadge">${ic.warn()} 要補充 ${lowCount}</span>` : ""}
           </div>
         </div>
         <div class="headBtns">
@@ -267,11 +311,12 @@ function render(){
 
 function cardHtml(it){
   const cat = catById(it.category);
-  const size = it.size || "none";
-  const low = it.qty<=it.min, out = it.qty===0;
-  const numColor = out?"#b23b3b":low?"#c07a1e":"#2f2820";
+  const low = itemLow(it);
+  const total = itemTotal(it);
+  // サイズフィルター中はその行だけ表示
+  const rows = (it.stocks||[]).filter(r => state.sizeFilter==="all" || (r.size||"none")===state.sizeFilter);
   return `
-    <div class="card ${out?"out":low?"low":""}">
+    <div class="card ${low?"low":""}">
       <div class="leftCol">
         <button class="thumb thumbBtn" data-edit="${it.id}">
           ${it.photo ? `<img src="${it.photo}" alt="">` :
@@ -287,22 +332,37 @@ function cardHtml(it){
         </div>` : ""}
         <div class="cardTop">
           <span class="catTag" style="color:${cat.color};border-color:${cat.color}">${cat.label}</span>
-          ${size!=="none" ? `<span class="sizeTag">${sizeLabel(size)}</span>` : ""}
-          ${out?`<span class="statusOut">在庫切れ</span>`:low?`<span class="statusLow">残りわずか</span>`:""}
+          <span class="totalTag">合計 ${total} 個</span>
         </div>
         <div class="name">${esc(it.name)}</div>
-        <div class="minText">最低在庫 ${it.min}</div>
-      </div>
-      <div class="counter">
-        <div class="counterRow">
-          <button class="stepBtn" data-dec="${it.id}" ${it.qty===0?"disabled":""}>${ic.minus()}</button>
-          <div class="qtyBox">
-            <span class="qtyNum" style="color:${numColor}">${it.qty}</span>
-            <span class="qtyUnit">個</span>
-          </div>
-          <button class="stepBtn" data-inc="${it.id}">${ic.plus(26,3)}</button>
+        <div class="sizeRows">
+          ${rows.map(r=>sizeRowHtml(it.id, r)).join("")}
         </div>
-        <button class="bulkBtn" data-bulk="${it.id}">まとめて増減</button>
+        <div class="rowActions">
+          <button class="bulkBtn" data-bulk="${it.id}">まとめて増減</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function sizeRowHtml(itemId, r){
+  const size = r.size || "none";
+  const qty = +r.qty||0, min = +r.min||0;
+  const low = qty<=min, out = qty===0;
+  const numColor = out?"#b23b3b":low?"#c07a1e":"#2f2820";
+  return `
+    <div class="sizeRow ${out?"out":low?"low":""}">
+      <div class="sizeRowLabel">
+        <span class="sizeRowSize">${sizeLabel(size)}</span>
+        <span class="sizeRowMin">最低 ${min}</span>
+      </div>
+      <div class="rowCounter">
+        <button class="stepBtn" data-dec="${itemId}" data-size="${size}" ${qty===0?"disabled":""}>${ic.minus(24,3)}</button>
+        <div class="qtyBox">
+          <span class="qtyNum" style="color:${numColor}">${qty}</span>
+          <span class="qtyUnit">個</span>
+        </div>
+        <button class="stepBtn" data-inc="${itemId}" data-size="${size}">${ic.plus(24,3)}</button>
       </div>
     </div>`;
 }
@@ -339,28 +399,9 @@ function modalHtml(){
             <button class="opt optAdd" id="addCatBtn">＋ 種類を追加</button>
           </div>
 
-          <label class="lb">サイズ</label>
-          <div class="optGrid" id="sizeGrid">
-            ${SIZES.map(s=>`<button class="opt" data-s="${s.id}" style="${d.size===s.id?"background:#3d332a;color:#fff;border-color:#3d332a":""}">${s.label}</button>`).join("")}
-          </div>
-
-          <div class="row">
-            <div style="flex:1">
-              <label class="lb">初期在庫数</label>
-              <div class="numField">
-                <button class="numBtn" data-qd>${ic.minus(20,3)}</button>
-                <input class="numInput" id="dQty" type="number" value="${d.qty}">
-                <button class="numBtn" data-qi>${ic.plus(20,3)}</button>
-              </div>
-            </div>
-            <div style="flex:1">
-              <label class="lb">最低在庫数</label>
-              <div class="numField">
-                <button class="numBtn" data-md>${ic.minus(20,3)}</button>
-                <input class="numInput" id="dMin" type="number" value="${d.min}">
-                <button class="numBtn" data-mi>${ic.plus(20,3)}</button>
-              </div>
-            </div>
+          <label class="lb">サイズ別の在庫（使うサイズをタップしてオン）</label>
+          <div class="sizeEditList" id="sizeEditList">
+            ${SIZES.map(s=>sizeEditRowHtml(d, s)).join("")}
           </div>
         </div>
         <div class="modalFoot">
@@ -371,18 +412,54 @@ function modalHtml(){
     </div>`;
 }
 
+function sizeEditRowHtml(d, s){
+  const row = d.stocks[s.id]; // {on, qty, min} or undefined
+  const on = !!(row && row.on);
+  return `
+    <div class="sizeEditRow ${on?"":"off"}">
+      <button class="sizeToggle ${on?"on":""}" data-sztoggle="${s.id}">${s.label}</button>
+      ${on ? `
+        <div class="sizeEditFields">
+          <div class="miniField">
+            <div class="k">在庫数</div>
+            <div class="numField">
+              <button class="numBtn" data-szqd="${s.id}">${ic.minus(18,3)}</button>
+              <input class="numInput" data-szq="${s.id}" type="number" value="${row.qty}">
+              <button class="numBtn" data-szqi="${s.id}">${ic.plus(18,3)}</button>
+            </div>
+          </div>
+          <div class="miniField">
+            <div class="k">最低在庫</div>
+            <div class="numField">
+              <button class="numBtn" data-szmd="${s.id}">${ic.minus(18,3)}</button>
+              <input class="numInput" data-szm="${s.id}" type="number" value="${row.min}">
+              <button class="numBtn" data-szmi="${s.id}">${ic.plus(18,3)}</button>
+            </div>
+          </div>
+        </div>` : `<div style="flex:1;color:#a89b8c;font-size:13px">タップして追加</div>`}
+    </div>`;
+}
+
 function bulkHtml(){
   const b = state.bulk;
   const it = state.items.find(i=>i.id===b.id);
   if(!it) return "";
+  const rows = it.stocks||[];
+  // 対象サイズが未選択なら最初のサイズ
+  if(!b.size && rows.length) b.size = rows[0].size;
+  const cur = rows.find(r=>r.size===b.size);
+  const curQty = cur ? (+cur.qty||0) : 0;
   const n = Math.max(0, +b.n || 0);
   const delta = b.mode==="in" ? n : -n;
-  const result = Math.max(0, it.qty + delta);
+  const result = Math.max(0, curQty + delta);
   return `
     <div class="overlayCenter" id="bulkOverlay">
       <div class="bulkModal" id="bulkModal">
         <div class="bulkName">${esc(it.name)}</div>
-        <div class="bulkCur">現在の在庫 ${it.qty} 個</div>
+        <div class="bulkCur">まとめて増減するサイズを選んでください</div>
+        <div class="bulkSizePick">
+          ${rows.map(r=>`<button class="bulkSizeOpt ${b.size===r.size?"on":""}" data-bsize="${r.size}">${sizeLabel(r.size)}</button>`).join("")}
+        </div>
         <div class="bulkToggle">
           <button class="bulkTgBtn ${b.mode==="in"?"on-in":""}" data-mode="in">入庫（＋）</button>
           <button class="bulkTgBtn ${b.mode==="out"?"on-out":""}" data-mode="out">出庫（−）</button>
@@ -393,7 +470,7 @@ function bulkHtml(){
           <input class="numInput" id="bulkN" type="number" value="${b.n}">
           <button class="numBtn" data-bi>${ic.plus(20,3)}</button>
         </div>
-        <div class="bulkPreview">変更後の在庫　<b>${result}</b> 個</div>
+        <div class="bulkPreview">${sizeLabel(b.size)}　現在 ${curQty} → 変更後 <b>${result}</b> 個</div>
         <div class="modalFoot" style="padding:18px 0 0">
           <button class="cancelBtn" id="bulkCancel">キャンセル</button>
           <button class="saveBtn" id="bulkApply">確定する</button>
@@ -404,17 +481,20 @@ function bulkHtml(){
 
 // ── Excel出力 ─────────────────────────
 function exportXlsx(){
-  const rows = state.items.map(it => {
+  const rows = [];
+  state.items.forEach(it => {
     const cond = [it.condNew?"新品":null, it.condUsed?"中古":null].filter(Boolean).join("・") || "－";
-    return {
-      "パーツ名": it.name,
-      "種類": catById(it.category).label,
-      "サイズ": (it.size && it.size!=="none") ? sizeLabel(it.size) : "指定なし",
-      "新品/中古": cond,
-      "在庫数": it.qty,
-      "最低在庫数": it.min,
-      "在庫状況": it.qty===0 ? "在庫切れ" : (it.qty<=it.min ? "残りわずか" : "在庫あり"),
-    };
+    (it.stocks||[]).forEach(r => {
+      rows.push({
+        "パーツ名": it.name,
+        "種類": catById(it.category).label,
+        "サイズ": (r.size && r.size!=="none") ? sizeLabel(r.size) : "指定なし",
+        "新品/中古": cond,
+        "在庫数": +r.qty||0,
+        "最低在庫数": +r.min||0,
+        "在庫状況": (+r.qty||0)===0 ? "在庫切れ" : ((+r.qty||0)<=(+r.min||0) ? "残りわずか" : "在庫あり"),
+      });
+    });
   });
   const ws = XLSX.utils.json_to_sheet(rows);
   ws["!cols"] = [ {wch:32},{wch:14},{wch:10},{wch:12},{wch:10},{wch:12},{wch:12} ];
@@ -422,13 +502,12 @@ function exportXlsx(){
   XLSX.utils.book_append_sheet(wb, ws, "在庫一覧");
   const d = new Date();
   const p = n => String(n).padStart(2,"0");
-  const fname = `工房在庫_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.xlsx`;
-  XLSX.writeFile(wb, fname);
+  XLSX.writeFile(wb, `工房在庫_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.xlsx`);
 }
 
-// ── バックアップ(JSON書き出し) ─────────────────────────
+// ── バックアップ/復元 ─────────────────────────
 function backupJson(){
-  const data = { app:"violin-stock", version:2, savedAt:new Date().toISOString(), items:state.items, categories:loadCats() };
+  const data = { app:"violin-stock", version:3, savedAt:new Date().toISOString(), items:state.items, categories:loadCats() };
   const blob = new Blob([JSON.stringify(data)], { type:"application/json" });
   const url = URL.createObjectURL(blob);
   const d = new Date();
@@ -436,43 +515,40 @@ function backupJson(){
   const a = document.createElement("a");
   a.href = url;
   a.download = `工房在庫_バックアップ_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
 
-// ── 復元(JSON読み込み) ─────────────────────────
 function restoreJson(file){
   const r = new FileReader();
   r.onload = () => {
     try {
       const data = JSON.parse(r.result);
-      const items = Array.isArray(data) ? data : data.items;
+      let items = Array.isArray(data) ? data : data.items;
       if(!Array.isArray(items)) throw new Error("形式が違います");
-      // 最低限の項目チェック
-      const clean = items.map(it => ({
-        id: it.id || (Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
-        name: String(it.name||"名称未設定"),
-        category: it.category || "other",
-        size: it.size || "none",
-        qty: Math.max(0, parseInt(it.qty)||0),
-        min: Math.max(0, parseInt(it.min)||0),
-        photo: it.photo || null,
-        condNew: !!it.condNew,
-        condUsed: !!it.condUsed,
-      }));
+      const clean = items.map(it => {
+        // 旧形式(sizeとqtyが直接)にも対応
+        let stocks = it.stocks;
+        if(!Array.isArray(stocks)){
+          stocks = [{ size:it.size||"none", qty:+it.qty||0, min:+it.min||0 }];
+        }
+        stocks = stocks.map(s=>({ size:s.size||"none", qty:Math.max(0,parseInt(s.qty)||0), min:Math.max(0,parseInt(s.min)||0) }));
+        return {
+          id: it.id || uid(),
+          name: String(it.name||"名称未設定"),
+          category: it.category || "other",
+          condNew: !!it.condNew,
+          condUsed: !!it.condUsed,
+          photo: it.photo || null,
+          stocks,
+        };
+      });
       if(!confirm(`このバックアップ(${clean.length}件)で今の在庫を置き換えます。よろしいですか?`)) return;
-      // ユーザー追加分類も復元(あれば)
       if(Array.isArray(data.categories)){
         const cats = data.categories.filter(c=>c&&c.id&&c.label).map(c=>({ id:String(c.id), label:String(c.label), color:c.color||"#5B7B8A" }));
-        saveCats(cats);
-        CATEGORIES = buildCategories();
+        saveCats(cats); CATEGORIES = buildCategories();
       }
-      state.items = clean;
-      save();
-      render();
-      alert("復元しました");
+      state.items = clean; save(); render(); alert("復元しました");
     } catch(e) {
       alert("このファイルは読み込めませんでした。バックアップ用のJSONファイルを選んでください。");
     }
@@ -481,10 +557,16 @@ function restoreJson(file){
 }
 
 // ── イベント ─────────────────────────
+function emptyDraftStocks(){ return {}; } // {sizeId:{on,qty,min}}
+
 function bind(){
   const q = id => document.getElementById(id);
 
-  q("openAdd").onclick = () => { state.draft={ name:"", category:"koma", size:"4/4", qty:1, min:2, photo:null, condNew:true, condUsed:false }; state.modal=true; render(); };
+  q("openAdd").onclick = () => {
+    const stocks = { "4/4":{ on:true, qty:1, min:2 } };
+    state.draft = { name:"", category:"koma", photo:null, condNew:true, condUsed:false, stocks };
+    state.modal = true; render();
+  };
   q("exportBtn").onclick = () => { if(state.items.length===0){ alert("出力するパーツがありません"); return; } exportXlsx(); };
   q("backupBtn").onclick = () => { if(state.items.length===0){ alert("バックアップするパーツがありません"); return; } backupJson(); };
   q("restoreBtn").onclick = () => q("restoreInput").click();
@@ -495,96 +577,116 @@ function bind(){
   if(q("clearSearch")) q("clearSearch").onclick = () => { state.search=""; render(); };
 
   document.querySelectorAll("[data-cat]").forEach(b=> b.onclick=()=>{ state.filter=b.dataset.cat; render(); });
-  document.querySelectorAll("[data-size]").forEach(b=> b.onclick=()=>{ state.sizeFilter=b.dataset.size; render(); });
-  document.querySelectorAll("[data-inc]").forEach(b=> b.onclick=()=>{ chg(b.dataset.inc,1); });
-  document.querySelectorAll("[data-dec]").forEach(b=> b.onclick=()=>{ chg(b.dataset.dec,-1); });
-  document.querySelectorAll("[data-bulk]").forEach(b=> b.onclick=()=>{ state.bulk={ id:b.dataset.bulk, mode:"in", n:10 }; render(); });
+  document.querySelectorAll("[data-size]").forEach(b=>{
+    if(b.hasAttribute("data-inc")||b.hasAttribute("data-dec")) return; // カウンターは別処理
+    b.onclick=()=>{ state.sizeFilter=b.dataset.size; render(); };
+  });
+  // サイズ別カウンター
+  document.querySelectorAll("[data-inc]").forEach(b=> b.onclick=()=>{ chgSize(b.dataset.inc, b.dataset.size, 1); });
+  document.querySelectorAll("[data-dec]").forEach(b=> b.onclick=()=>{ chgSize(b.dataset.dec, b.dataset.size, -1); });
+  document.querySelectorAll("[data-bulk]").forEach(b=> b.onclick=()=>{ state.bulk={ id:b.dataset.bulk, mode:"in", n:10, size:null }; render(); });
   document.querySelectorAll("[data-del]").forEach(b=> b.onclick=()=>{ if(confirm("このパーツを削除しますか?")){ state.items=state.items.filter(i=>i.id!==b.dataset.del); save(); render(); } });
   document.querySelectorAll("[data-edit]").forEach(b=> b.onclick=()=>{
     const it = state.items.find(i=>i.id===b.dataset.edit);
     if(!it) return;
-    state.draft = { editId:it.id, name:it.name, category:it.category, size:it.size||"none", qty:it.qty, min:it.min, photo:it.photo||null, condNew:!!it.condNew, condUsed:!!it.condUsed };
+    const stocks = {};
+    (it.stocks||[]).forEach(r=>{ stocks[r.size] = { on:true, qty:+r.qty||0, min:+r.min||0 }; });
+    state.draft = { editId:it.id, name:it.name, category:it.category, photo:it.photo||null, condNew:!!it.condNew, condUsed:!!it.condUsed, stocks };
     state.modal = true; render();
   });
 
-  if(state.modal){
-    q("overlay").onclick = e => { if(e.target.id==="overlay"){ state.modal=false; render(); } };
-    q("closeModal").onclick = q("cancelBtn").onclick = () => { state.modal=false; render(); };
-    q("dName").oninput = e => { state.draft.name=e.target.value; q("saveBtn").disabled=!e.target.value.trim(); };
-    document.querySelectorAll("[data-c]").forEach(b=> b.onclick=()=>{ state.draft.category=b.dataset.c; render(); });
-    q("condNewBtn").onclick = () => { state.draft.condNew = !state.draft.condNew; render(); };
-    q("condUsedBtn").onclick = () => { state.draft.condUsed = !state.draft.condUsed; render(); };
-    q("addCatBtn").onclick = () => {
-      const name = (prompt("追加する種類の名前を入力してください（例：あご当て、松脂、弓）") || "").trim();
-      if(!name) return;
-      // 同名チェック
-      const dup = CATEGORIES.find(c=>c.label===name);
-      if(dup){ state.draft.category = dup.id; render(); return; }
-      const user = loadCats();
-      const newCat = { id:"u"+uid(), label:name, color:CAT_COLORS[user.length % CAT_COLORS.length] };
-      user.push(newCat);
-      saveCats(user);
-      CATEGORIES = buildCategories();
-      state.draft.category = newCat.id;
-      render();
-    };
-    document.querySelectorAll("[data-s]").forEach(b=> b.onclick=()=>{ state.draft.size=b.dataset.s; render(); });
-    q("dQty").oninput = e => state.draft.qty = e.target.value;
-    q("dMin").oninput = e => state.draft.min = e.target.value;
-    document.querySelector("[data-qd]").onclick=()=>{ state.draft.qty=Math.max(0,(+state.draft.qty||0)-1); render(); };
-    document.querySelector("[data-qi]").onclick=()=>{ state.draft.qty=(+state.draft.qty||0)+1; render(); };
-    document.querySelector("[data-md]").onclick=()=>{ state.draft.min=Math.max(0,(+state.draft.min||0)-1); render(); };
-    document.querySelector("[data-mi]").onclick=()=>{ state.draft.min=(+state.draft.min||0)+1; render(); };
-    q("photoPick").onclick = () => q("photoInput").click();
-    q("photoInput").onchange = e => {
-      const f = e.target.files[0]; if(!f) return;
-      const r = new FileReader();
-      r.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          const max=600, sc=Math.min(1, max/Math.max(img.width,img.height));
-          const cv=document.createElement("canvas");
-          cv.width=img.width*sc; cv.height=img.height*sc;
-          cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
-          state.draft.photo = cv.toDataURL("image/jpeg",.8);
-          render();
-        };
-        img.src = r.result;
-      };
-      r.readAsDataURL(f);
-    };
-    q("saveBtn").onclick = () => {
-      const d=state.draft;
-      if(!d.name.trim()) return;
-      if(d.editId){
-        const it = state.items.find(i=>i.id===d.editId);
-        if(it){ it.name=d.name.trim(); it.category=d.category; it.size=d.size; it.qty=+d.qty||0; it.min=+d.min||0; it.photo=d.photo; it.condNew=!!d.condNew; it.condUsed=!!d.condUsed; }
-      } else {
-        state.items.unshift({ id:uid(), name:d.name.trim(), category:d.category, size:d.size, qty:+d.qty||0, min:+d.min||0, photo:d.photo, condNew:!!d.condNew, condUsed:!!d.condUsed });
-      }
-      save(); state.modal=false; render();
-    };
-  }
-
-  if(state.bulk){
-    q("bulkOverlay").onclick = e => { if(e.target.id==="bulkOverlay"){ state.bulk=null; render(); } };
-    q("bulkCancel").onclick = () => { state.bulk=null; render(); };
-    document.querySelectorAll("[data-mode]").forEach(b=> b.onclick=()=>{ state.bulk.mode=b.dataset.mode; render(); });
-    q("bulkN").oninput = e => { state.bulk.n = e.target.value; const it=state.items.find(i=>i.id===state.bulk.id); const n=Math.max(0,+e.target.value||0); const delta=state.bulk.mode==="in"?n:-n; const r=it?Math.max(0,it.qty+delta):0; const pv=document.querySelector(".bulkPreview b"); if(pv) pv.textContent=r; };
-    document.querySelector("[data-bd]").onclick=()=>{ state.bulk.n=Math.max(0,(+state.bulk.n||0)-1); render(); };
-    document.querySelector("[data-bi]").onclick=()=>{ state.bulk.n=(+state.bulk.n||0)+1; render(); };
-    q("bulkApply").onclick = () => {
-      const b=state.bulk; const it=state.items.find(i=>i.id===b.id);
-      if(it){ const n=Math.max(0,+b.n||0); it.qty=Math.max(0, it.qty + (b.mode==="in"?n:-n)); save(); }
-      state.bulk=null; render();
-    };
-  }
+  if(state.modal) bindModal(q);
+  if(state.bulk) bindBulk(q);
 }
 
-function chg(id,delta){
-  const it = state.items.find(i=>i.id===id);
+function bindModal(q){
+  q("overlay").onclick = e => { if(e.target.id==="overlay"){ state.modal=false; render(); } };
+  q("closeModal").onclick = q("cancelBtn").onclick = () => { state.modal=false; render(); };
+  q("dName").oninput = e => { state.draft.name=e.target.value; q("saveBtn").disabled=!e.target.value.trim(); };
+  q("condNewBtn").onclick = () => { state.draft.condNew=!state.draft.condNew; render(); };
+  q("condUsedBtn").onclick = () => { state.draft.condUsed=!state.draft.condUsed; render(); };
+  document.querySelectorAll("[data-c]").forEach(b=> b.onclick=()=>{ state.draft.category=b.dataset.c; render(); });
+  q("addCatBtn").onclick = () => {
+    const name = (prompt("追加する種類の名前を入力してください（例：あご当て、松脂、弓）") || "").trim();
+    if(!name) return;
+    const dup = CATEGORIES.find(c=>c.label===name);
+    if(dup){ state.draft.category=dup.id; render(); return; }
+    const user = loadCats();
+    const newCat = { id:"u"+uid(), label:name, color:CAT_COLORS[user.length % CAT_COLORS.length] };
+    user.push(newCat); saveCats(user); CATEGORIES = buildCategories();
+    state.draft.category = newCat.id; render();
+  };
+
+  // サイズのオン/オフ・数量
+  document.querySelectorAll("[data-sztoggle]").forEach(b=> b.onclick=()=>{
+    const id=b.dataset.sztoggle; const st=state.draft.stocks;
+    if(st[id] && st[id].on){ st[id].on=false; } else { st[id]={ on:true, qty:(st[id]?st[id].qty:1), min:(st[id]?st[id].min:2) }; }
+    render();
+  });
+  document.querySelectorAll("[data-szq]").forEach(inp=> inp.oninput=e=>{ state.draft.stocks[inp.dataset.szq].qty=e.target.value; });
+  document.querySelectorAll("[data-szm]").forEach(inp=> inp.oninput=e=>{ state.draft.stocks[inp.dataset.szm].min=e.target.value; });
+  document.querySelectorAll("[data-szqd]").forEach(b=> b.onclick=()=>{ const r=state.draft.stocks[b.dataset.szqd]; r.qty=Math.max(0,(+r.qty||0)-1); render(); });
+  document.querySelectorAll("[data-szqi]").forEach(b=> b.onclick=()=>{ const r=state.draft.stocks[b.dataset.szqi]; r.qty=(+r.qty||0)+1; render(); });
+  document.querySelectorAll("[data-szmd]").forEach(b=> b.onclick=()=>{ const r=state.draft.stocks[b.dataset.szmd]; r.min=Math.max(0,(+r.min||0)-1); render(); });
+  document.querySelectorAll("[data-szmi]").forEach(b=> b.onclick=()=>{ const r=state.draft.stocks[b.dataset.szmi]; r.min=(+r.min||0)+1; render(); });
+
+  q("photoPick").onclick = () => q("photoInput").click();
+  q("photoInput").onchange = e => {
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max=600, sc=Math.min(1, max/Math.max(img.width,img.height));
+        const cv=document.createElement("canvas");
+        cv.width=img.width*sc; cv.height=img.height*sc;
+        cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+        state.draft.photo = cv.toDataURL("image/jpeg",.8);
+        render();
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(f);
+  };
+
+  q("saveBtn").onclick = () => {
+    const d=state.draft;
+    if(!d.name.trim()) return;
+    // オンのサイズだけ stocks 配列に
+    const stocks = SIZES.filter(s=>d.stocks[s.id] && d.stocks[s.id].on)
+      .map(s=>({ size:s.id, qty:+d.stocks[s.id].qty||0, min:+d.stocks[s.id].min||0 }));
+    if(stocks.length===0){ alert("サイズを1つ以上オンにして在庫を入力してください"); return; }
+    if(d.editId){
+      const it = state.items.find(i=>i.id===d.editId);
+      if(it){ it.name=d.name.trim(); it.category=d.category; it.photo=d.photo; it.condNew=!!d.condNew; it.condUsed=!!d.condUsed; it.stocks=stocks; }
+    } else {
+      state.items.unshift({ id:uid(), name:d.name.trim(), category:d.category, photo:d.photo, condNew:!!d.condNew, condUsed:!!d.condUsed, stocks });
+    }
+    save(); state.modal=false; render();
+  };
+}
+
+function bindBulk(q){
+  q("bulkOverlay").onclick = e => { if(e.target.id==="bulkOverlay"){ state.bulk=null; render(); } };
+  q("bulkCancel").onclick = () => { state.bulk=null; render(); };
+  document.querySelectorAll("[data-bsize]").forEach(b=> b.onclick=()=>{ state.bulk.size=b.dataset.bsize; render(); });
+  document.querySelectorAll("[data-mode]").forEach(b=> b.onclick=()=>{ state.bulk.mode=b.dataset.mode; render(); });
+  q("bulkN").oninput = e => { state.bulk.n=e.target.value; render(); };
+  document.querySelector("[data-bd]").onclick=()=>{ state.bulk.n=Math.max(0,(+state.bulk.n||0)-1); render(); };
+  document.querySelector("[data-bi]").onclick=()=>{ state.bulk.n=(+state.bulk.n||0)+1; render(); };
+  q("bulkApply").onclick = () => {
+    const b=state.bulk; const it=state.items.find(i=>i.id===b.id);
+    if(it){ const r=(it.stocks||[]).find(x=>x.size===b.size); if(r){ const n=Math.max(0,+b.n||0); r.qty=Math.max(0, (+r.qty||0) + (b.mode==="in"?n:-n)); save(); } }
+    state.bulk=null; render();
+  };
+}
+
+function chgSize(itemId, size, delta){
+  const it = state.items.find(i=>i.id===itemId);
   if(!it) return;
-  it.qty = Math.max(0, it.qty+delta);
+  const r = (it.stocks||[]).find(x=>x.size===size);
+  if(!r) return;
+  r.qty = Math.max(0, (+r.qty||0)+delta);
   save(); render();
 }
 
