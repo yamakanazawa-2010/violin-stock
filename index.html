@@ -162,6 +162,7 @@ const ic = {
   save:(s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>`,
   load:(s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 9l5-5 5 5M12 4v12"/></svg>`,
   pencil:(s=14)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
+  merge:(s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v4a4 4 0 0 0 4 4h4"/><path d="M8 18V6M16 10l4 4-4 4"/></svg>`,
 };
 
 // ── カテゴリー ─────────────────────────
@@ -271,6 +272,7 @@ function render(){
           <button class="xlsxBtn" id="exportBtn">${ic.xlsx()}<span>Excel出力</span></button>
           <button class="xlsxBtn" id="backupBtn">${ic.save(16)}<span>バックアップ</span></button>
           <button class="xlsxBtn" id="restoreBtn">${ic.load(16)}<span>復元</span></button>
+          <button class="xlsxBtn" id="mergeBtn">${ic.merge(16)}<span>サイズ違いをまとめる</span></button>
           <input type="file" id="restoreInput" accept="application/json,.json" style="display:none">
         </div>
       </header>
@@ -505,6 +507,55 @@ function exportXlsx(){
   XLSX.writeFile(wb, `工房在庫_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.xlsx`);
 }
 
+// ── サイズ違いを1カードにまとめる ─────────────────────────
+function mergeBySizes(){
+  const items = state.items;
+  // グループキー: 名前 + 種類 + 新品 + 中古
+  const groups = {};
+  const order = [];
+  items.forEach(it => {
+    const key = `${it.name}||${it.category}||${it.condNew?1:0}||${it.condUsed?1:0}`;
+    if(!groups[key]){ groups[key] = []; order.push(key); }
+    groups[key].push(it);
+  });
+  // 統合対象(2件以上のグループ)を数える
+  const toMerge = order.filter(k => groups[k].length >= 2);
+  if(toMerge.length === 0){ alert("まとめられるサイズ違いは見つかりませんでした。\n（同じ名前・種類・新品/中古の組み合わせが複数あるものが対象です）"); return; }
+
+  const beforeCount = items.length;
+  // 実行前に自動バックアップ
+  backupJson();
+
+  const merged = order.map(key => {
+    const grp = groups[key];
+    const base = grp[0];
+    // 全アイテムの stocks を集約(同じサイズは合算)
+    const sizeMap = {};
+    const sizeOrder = [];
+    grp.forEach(it => {
+      (it.stocks||[]).forEach(r => {
+        const sz = r.size || "none";
+        if(!sizeMap[sz]){ sizeMap[sz] = { size:sz, qty:0, min:+r.min||0 }; sizeOrder.push(sz); }
+        sizeMap[sz].qty += (+r.qty||0);
+        // minは大きい方を採用
+        sizeMap[sz].min = Math.max(sizeMap[sz].min, +r.min||0);
+      });
+    });
+    // サイズ規定順に並べる
+    const sizeRank = s => { const i = SIZES.findIndex(x=>x.id===s); return i<0?99:i; };
+    const stocks = sizeOrder.map(s=>sizeMap[s]).sort((a,b)=>sizeRank(a.size)-sizeRank(b.size));
+    // 写真は最初に見つかったもの
+    const photo = grp.map(it=>it.photo).find(p=>p) || null;
+    return { id:base.id, name:base.name, category:base.category, condNew:!!base.condNew, condUsed:!!base.condUsed, photo, stocks };
+  });
+
+  const afterCount = merged.length;
+  state.items = merged;
+  save();
+  render();
+  alert(`まとめました。\n${beforeCount}件 → ${afterCount}件\n\n実行前のバックアップを自動保存しています。もし結果が意図と違えば「復元」で元に戻せます。`);
+}
+
 // ── バックアップ/復元 ─────────────────────────
 function backupJson(){
   const data = { app:"violin-stock", version:3, savedAt:new Date().toISOString(), items:state.items, categories:loadCats() };
@@ -570,6 +621,9 @@ function bind(){
   q("exportBtn").onclick = () => { if(state.items.length===0){ alert("出力するパーツがありません"); return; } exportXlsx(); };
   q("backupBtn").onclick = () => { if(state.items.length===0){ alert("バックアップするパーツがありません"); return; } backupJson(); };
   q("restoreBtn").onclick = () => q("restoreInput").click();
+  q("mergeBtn").onclick = () => {
+    if(confirm("同じ名前・種類・新品/中古が一致するパーツを、サイズ違いとして1つのカードにまとめます。\n\n実行前に自動でバックアップを保存します。よろしいですか?")) mergeBySizes();
+  };
   q("restoreInput").onchange = e => { const f=e.target.files[0]; if(f){ restoreJson(f); e.target.value=""; } };
 
   const s = q("search");
