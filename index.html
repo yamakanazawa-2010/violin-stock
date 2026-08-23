@@ -11,7 +11,9 @@
 <title>工房パーツ在庫</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; touch-action:manipulation; }
+  html { touch-action:manipulation; }
+  button { touch-action:manipulation; }
   input { -webkit-user-select:text; user-select:text; }
   input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
   html,body { background:#f7f3ec; color:#2f2820; font-family:'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',system-ui,sans-serif; }
@@ -41,6 +43,7 @@
   .card { position:relative; display:flex; align-items:center; gap:14px; background:#fff; border:1px solid #ece4d6; border-radius:18px; padding:14px 16px; box-shadow:0 1px 3px rgba(61,51,42,.06); }
   .card.low { border-color:#f0d0a0; background:#fffdf8; }
   .card.out { border-color:#e6b3b3; background:#fef7f6; }
+  .leftCol { display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; }
   .thumb { width:62px; height:62px; border-radius:12px; overflow:hidden; flex-shrink:0; }
   .thumb img { width:100%; height:100%; object-fit:cover; }
   .thumbPh { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:26px; font-weight:800; }
@@ -60,7 +63,8 @@
   .qtyNum { font-size:28px; font-weight:800; line-height:1; }
   .qtyUnit { font-size:11px; color:#9a8f82; margin-top:1px; }
   .bulkBtn { border:none; background:transparent; color:#8a7d6d; font-size:12px; font-weight:700; text-decoration:underline; padding:2px 4px; }
-  .delBtn { position:absolute; top:8px; right:8px; width:30px; height:30px; border-radius:8px; border:none; background:transparent; color:#c9bcac; display:flex; align-items:center; justify-content:center; }
+  .delBtn { display:flex; align-items:center; justify-content:center; gap:3px; width:62px; padding:5px 0; border-radius:8px; border:1px solid #ecdada; background:#fff; color:#b07a7a; font-size:11px; font-weight:700; }
+  .delBtn:active { background:#fadede; color:#b23b3b; }
   .empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; text-align:center; color:#9a8f82; }
   .empty p.t { margin:12px 0 4px; font-weight:600; color:#6e6259; }
 
@@ -105,6 +109,18 @@
 <div id="app"></div>
 
 <script>
+// ── ダブルタップ拡大の抑止(iPad Safari対策) ─────────────────────────
+let __lastTouch = 0;
+document.addEventListener("touchend", e => {
+  const t = e.target;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) { __lastTouch = 0; return; }
+  const now = Date.now();
+  if (now - __lastTouch <= 350) { e.preventDefault(); }
+  __lastTouch = now;
+}, { passive:false });
+// ピンチ拡大の抑止
+document.addEventListener("gesturestart", e => e.preventDefault());
+
 // ── アイコン(inline SVG) ─────────────────────────
 const ic = {
   plus:(s=22,w=2.5)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
@@ -116,6 +132,8 @@ const ic = {
   pkg:(s=48)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg>`,
   warn:(s=13)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.7 18-9-16a2 2 0 0 0-3.4 0l-9 16A2 2 0 0 0 3 21h18a2 2 0 0 0 1.7-3z"/><path d="M12 9v4M12 17h.01"/></svg>`,
   xlsx:(s=17)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13l3 4M11 13l-3 4"/></svg>`,
+  save:(s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>`,
+  load:(s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 9l5-5 5 5M12 4v12"/></svg>`,
 };
 
 // ── カテゴリー ─────────────────────────
@@ -184,6 +202,9 @@ function render(){
         <div class="headBtns">
           <button class="addBtn" id="openAdd">${ic.plus()}<span>追加</span></button>
           <button class="xlsxBtn" id="exportBtn">${ic.xlsx()}<span>Excel出力</span></button>
+          <button class="xlsxBtn" id="backupBtn">${ic.save(16)}<span>バックアップ</span></button>
+          <button class="xlsxBtn" id="restoreBtn">${ic.load(16)}<span>復元</span></button>
+          <input type="file" id="restoreInput" accept="application/json,.json" style="display:none">
         </div>
       </header>
 
@@ -228,9 +249,12 @@ function cardHtml(it){
   const numColor = out?"#b23b3b":low?"#c07a1e":"#2f2820";
   return `
     <div class="card ${out?"out":low?"low":""}">
-      <div class="thumb">
-        ${it.photo ? `<img src="${it.photo}" alt="">` :
-          `<div class="thumbPh" style="background:${cat.color}">${cat.label.slice(0,1)}</div>`}
+      <div class="leftCol">
+        <div class="thumb">
+          ${it.photo ? `<img src="${it.photo}" alt="">` :
+            `<div class="thumbPh" style="background:${cat.color}">${cat.label.slice(0,1)}</div>`}
+        </div>
+        <button class="delBtn" data-del="${it.id}">${ic.trash(15)}<span>削除</span></button>
       </div>
       <div class="body">
         <div class="cardTop">
@@ -252,7 +276,6 @@ function cardHtml(it){
         </div>
         <button class="bulkBtn" data-bulk="${it.id}">まとめて増減</button>
       </div>
-      <button class="delBtn" data-del="${it.id}">${ic.trash()}</button>
     </div>`;
 }
 
@@ -363,12 +386,61 @@ function exportXlsx(){
   XLSX.writeFile(wb, fname);
 }
 
+// ── バックアップ(JSON書き出し) ─────────────────────────
+function backupJson(){
+  const data = { app:"violin-stock", version:2, savedAt:new Date().toISOString(), items:state.items };
+  const blob = new Blob([JSON.stringify(data)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const d = new Date();
+  const p = n => String(n).padStart(2,"0");
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `工房在庫_バックアップ_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+// ── 復元(JSON読み込み) ─────────────────────────
+function restoreJson(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      const items = Array.isArray(data) ? data : data.items;
+      if(!Array.isArray(items)) throw new Error("形式が違います");
+      // 最低限の項目チェック
+      const clean = items.map(it => ({
+        id: it.id || (Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
+        name: String(it.name||"名称未設定"),
+        category: it.category || "other",
+        size: it.size || "none",
+        qty: Math.max(0, parseInt(it.qty)||0),
+        min: Math.max(0, parseInt(it.min)||0),
+        photo: it.photo || null,
+      }));
+      if(!confirm(`このバックアップ(${clean.length}件)で今の在庫を置き換えます。よろしいですか?`)) return;
+      state.items = clean;
+      save();
+      render();
+      alert("復元しました");
+    } catch(e) {
+      alert("このファイルは読み込めませんでした。バックアップ用のJSONファイルを選んでください。");
+    }
+  };
+  r.readAsText(file);
+}
+
 // ── イベント ─────────────────────────
 function bind(){
   const q = id => document.getElementById(id);
 
   q("openAdd").onclick = () => { state.draft={ name:"", category:"koma", size:"4/4", qty:1, min:2, photo:null }; state.modal=true; render(); };
   q("exportBtn").onclick = () => { if(state.items.length===0){ alert("出力するパーツがありません"); return; } exportXlsx(); };
+  q("backupBtn").onclick = () => { if(state.items.length===0){ alert("バックアップするパーツがありません"); return; } backupJson(); };
+  q("restoreBtn").onclick = () => q("restoreInput").click();
+  q("restoreInput").onchange = e => { const f=e.target.files[0]; if(f){ restoreJson(f); e.target.value=""; } };
 
   const s = q("search");
   if(s) s.oninput = e => { state.search=e.target.value; const p=e.target.selectionStart; render(); const n=document.getElementById("search"); if(n){ n.focus(); n.setSelectionRange(p,p);} };
