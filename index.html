@@ -52,6 +52,9 @@
   .editBtn:active { background:#eef1e6; color:#4e5c3f; }
   .body { flex:1; min-width:0; }
   .cardTop { display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
+  .condRow { display:flex; gap:5px; margin-bottom:5px; }
+  .condNew { font-size:11px; font-weight:800; color:#fff; background:#2f6d4f; border-radius:6px; padding:1.5px 8px; }
+  .condUsed { font-size:11px; font-weight:800; color:#fff; background:#a97442; border-radius:6px; padding:1.5px 8px; }
   .catTag { font-size:11.5px; font-weight:800; border:1.2px solid; border-radius:6px; padding:1px 7px; }
   .sizeTag { font-size:11.5px; font-weight:800; color:#3d332a; background:#efe7d8; border-radius:6px; padding:1px 8px; }
   .statusLow { font-size:11.5px; font-weight:800; color:#c07a1e; background:#fbe9d6; border-radius:6px; padding:1px 7px; }
@@ -87,6 +90,8 @@
   .optGrid { display:flex; flex-wrap:wrap; gap:8px; }
   .opt { border:1.5px solid #e2d8c8; background:#fff; color:#6e6259; border-radius:10px; padding:10px 16px; font-size:15px; font-weight:700; }
   .optAdd { border-style:dashed; color:#8a7d6d; }
+  .condOpt.on-new { background:#2f6d4f; color:#fff; border-color:#2f6d4f; }
+  .condOpt.on-used { background:#a97442; color:#fff; border-color:#a97442; }
   .row { display:flex; gap:14px; }
   .numField { display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid #e2d8c8; border-radius:12px; padding:5px; }
   .numBtn { width:42px; height:42px; border-radius:9px; border:none; background:#f0e9dd; color:#3d332a; display:flex; align-items:center; justify-content:center; }
@@ -276,6 +281,10 @@ function cardHtml(it){
         <button class="delBtn" data-del="${it.id}">${ic.trash(15)}<span>削除</span></button>
       </div>
       <div class="body">
+        ${(it.condNew || it.condUsed) ? `<div class="condRow">
+          ${it.condNew ? `<span class="condNew">新品</span>` : ""}
+          ${it.condUsed ? `<span class="condUsed">中古</span>` : ""}
+        </div>` : ""}
         <div class="cardTop">
           <span class="catTag" style="color:${cat.color};border-color:${cat.color}">${cat.label}</span>
           ${size!=="none" ? `<span class="sizeTag">${sizeLabel(size)}</span>` : ""}
@@ -317,6 +326,12 @@ function modalHtml(){
 
           <label class="lb">パーツ名</label>
           <input class="field" id="dName" value="${esc(d.name)}" placeholder="例）Aubert 駒 フランス製">
+
+          <label class="lb">状態（複数選択可）</label>
+          <div class="optGrid">
+            <button class="opt condOpt ${d.condNew?"on-new":""}" id="condNewBtn">${d.condNew?"☑":"☐"} 新品</button>
+            <button class="opt condOpt ${d.condUsed?"on-used":""}" id="condUsedBtn">${d.condUsed?"☑":"☐"} 中古</button>
+          </div>
 
           <label class="lb">種類</label>
           <div class="optGrid" id="catGrid">
@@ -389,16 +404,20 @@ function bulkHtml(){
 
 // ── Excel出力 ─────────────────────────
 function exportXlsx(){
-  const rows = state.items.map(it => ({
-    "パーツ名": it.name,
-    "種類": catById(it.category).label,
-    "サイズ": (it.size && it.size!=="none") ? sizeLabel(it.size) : "指定なし",
-    "在庫数": it.qty,
-    "最低在庫数": it.min,
-    "状態": it.qty===0 ? "在庫切れ" : (it.qty<=it.min ? "残りわずか" : "在庫あり"),
-  }));
+  const rows = state.items.map(it => {
+    const cond = [it.condNew?"新品":null, it.condUsed?"中古":null].filter(Boolean).join("・") || "－";
+    return {
+      "パーツ名": it.name,
+      "種類": catById(it.category).label,
+      "サイズ": (it.size && it.size!=="none") ? sizeLabel(it.size) : "指定なし",
+      "新品/中古": cond,
+      "在庫数": it.qty,
+      "最低在庫数": it.min,
+      "在庫状況": it.qty===0 ? "在庫切れ" : (it.qty<=it.min ? "残りわずか" : "在庫あり"),
+    };
+  });
   const ws = XLSX.utils.json_to_sheet(rows);
-  ws["!cols"] = [ {wch:32},{wch:14},{wch:10},{wch:10},{wch:12},{wch:12} ];
+  ws["!cols"] = [ {wch:32},{wch:14},{wch:10},{wch:12},{wch:10},{wch:12},{wch:12} ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "在庫一覧");
   const d = new Date();
@@ -440,6 +459,8 @@ function restoreJson(file){
         qty: Math.max(0, parseInt(it.qty)||0),
         min: Math.max(0, parseInt(it.min)||0),
         photo: it.photo || null,
+        condNew: !!it.condNew,
+        condUsed: !!it.condUsed,
       }));
       if(!confirm(`このバックアップ(${clean.length}件)で今の在庫を置き換えます。よろしいですか?`)) return;
       // ユーザー追加分類も復元(あれば)
@@ -463,7 +484,7 @@ function restoreJson(file){
 function bind(){
   const q = id => document.getElementById(id);
 
-  q("openAdd").onclick = () => { state.draft={ name:"", category:"koma", size:"4/4", qty:1, min:2, photo:null }; state.modal=true; render(); };
+  q("openAdd").onclick = () => { state.draft={ name:"", category:"koma", size:"4/4", qty:1, min:2, photo:null, condNew:true, condUsed:false }; state.modal=true; render(); };
   q("exportBtn").onclick = () => { if(state.items.length===0){ alert("出力するパーツがありません"); return; } exportXlsx(); };
   q("backupBtn").onclick = () => { if(state.items.length===0){ alert("バックアップするパーツがありません"); return; } backupJson(); };
   q("restoreBtn").onclick = () => q("restoreInput").click();
@@ -482,7 +503,7 @@ function bind(){
   document.querySelectorAll("[data-edit]").forEach(b=> b.onclick=()=>{
     const it = state.items.find(i=>i.id===b.dataset.edit);
     if(!it) return;
-    state.draft = { editId:it.id, name:it.name, category:it.category, size:it.size||"none", qty:it.qty, min:it.min, photo:it.photo||null };
+    state.draft = { editId:it.id, name:it.name, category:it.category, size:it.size||"none", qty:it.qty, min:it.min, photo:it.photo||null, condNew:!!it.condNew, condUsed:!!it.condUsed };
     state.modal = true; render();
   });
 
@@ -491,6 +512,8 @@ function bind(){
     q("closeModal").onclick = q("cancelBtn").onclick = () => { state.modal=false; render(); };
     q("dName").oninput = e => { state.draft.name=e.target.value; q("saveBtn").disabled=!e.target.value.trim(); };
     document.querySelectorAll("[data-c]").forEach(b=> b.onclick=()=>{ state.draft.category=b.dataset.c; render(); });
+    q("condNewBtn").onclick = () => { state.draft.condNew = !state.draft.condNew; render(); };
+    q("condUsedBtn").onclick = () => { state.draft.condUsed = !state.draft.condUsed; render(); };
     q("addCatBtn").onclick = () => {
       const name = (prompt("追加する種類の名前を入力してください（例：あご当て、松脂、弓）") || "").trim();
       if(!name) return;
@@ -535,9 +558,9 @@ function bind(){
       if(!d.name.trim()) return;
       if(d.editId){
         const it = state.items.find(i=>i.id===d.editId);
-        if(it){ it.name=d.name.trim(); it.category=d.category; it.size=d.size; it.qty=+d.qty||0; it.min=+d.min||0; it.photo=d.photo; }
+        if(it){ it.name=d.name.trim(); it.category=d.category; it.size=d.size; it.qty=+d.qty||0; it.min=+d.min||0; it.photo=d.photo; it.condNew=!!d.condNew; it.condUsed=!!d.condUsed; }
       } else {
-        state.items.unshift({ id:uid(), name:d.name.trim(), category:d.category, size:d.size, qty:+d.qty||0, min:+d.min||0, photo:d.photo });
+        state.items.unshift({ id:uid(), name:d.name.trim(), category:d.category, size:d.size, qty:+d.qty||0, min:+d.min||0, photo:d.photo, condNew:!!d.condNew, condUsed:!!d.condUsed });
       }
       save(); state.modal=false; render();
     };
