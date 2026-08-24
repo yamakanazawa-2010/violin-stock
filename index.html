@@ -200,10 +200,16 @@ const SIZES = [
 const sizeLabel = id => (SIZES.find(s=>s.id===id) || {label:"指定なし"}).label;
 
 // ── データ保存 ─────────────────────────
-// 新モデル: 各アイテムは stocks:[{size, qty, min}] を持つ(サイズ別在庫)
+// 各アイテムは stocks:[{size, qty, min}] を持つ(サイズ別在庫)
 const KEY = "violin_inventory_v3";
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch { return null; } };
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state.items)); } catch(e){ console.error(e); } };
+// 保存: 読み込んだ件数より大幅に減っていたら誤消去の疑いとして確認する安全弁つき
+let __loadedCount = 0;
+const save = () => {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state.items));
+  } catch(e){ console.error(e); alert("保存できませんでした。空き容量をご確認ください。"); }
+};
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
 const SEED = [
@@ -215,28 +221,37 @@ const SEED = [
     stocks:[ {size:"4/4",qty:2,min:2} ] },
 ];
 
-// 旧v2データがあれば新モデルへ移行
-function migrateV2(){
-  try {
-    const old = JSON.parse(localStorage.getItem("violin_inventory_v2"));
-    if(!Array.isArray(old) || old.length===0) return null;
-    // 同名・同分類・同新品中古はまとめる
-    const map = {};
-    old.forEach(it => {
-      const key = `${it.name}||${it.category}||${it.condNew?1:0}||${it.condUsed?1:0}`;
-      if(!map[key]){
-        map[key] = { id:uid(), name:it.name, category:it.category, condNew:!!it.condNew, condUsed:!!it.condUsed, photo:it.photo||null, stocks:[] };
-      }
-      map[key].stocks.push({ size:it.size||"none", qty:+it.qty||0, min:+it.min||0 });
-    });
-    return Object.values(map);
-  } catch { return null; }
+// 読み込んだデータを安全な形に整える(構造は変えず、欠けた項目だけ補う)
+function normalizeItem(it){
+  let stocks = it.stocks;
+  if(!Array.isArray(stocks)){
+    // 旧形式(size/qty/minが直接)なら1サイズのstocksに変換。ただしデータは消さない
+    stocks = [{ size:it.size||"none", qty:+it.qty||0, min:+it.min||0 }];
+  }
+  stocks = stocks.map(s=>({ size:s.size||"none", qty:Math.max(0,parseInt(s.qty)||0), min:Math.max(0,parseInt(s.min)||0) }));
+  return {
+    id: it.id || uid(),
+    name: it.name!=null ? String(it.name) : "名称未設定",
+    category: it.category || "other",
+    condNew: !!it.condNew,
+    condUsed: !!it.condUsed,
+    photo: it.photo || null,
+    stocks,
+  };
 }
 
-let __init = load();
-if(!__init){ const m = migrateV2(); __init = m || SEED; }
+// 起動時: 保存済みデータがあればそのまま読む。無ければサンプル。勝手な変換・上書きはしない
+let __stored = load();
+let __init;
+if(Array.isArray(__stored) && __stored.length){
+  __init = __stored.map(normalizeItem);
+} else {
+  __init = SEED;
+}
+__loadedCount = __init.length;
 const state = { items: __init, filter:"all", sizeFilter:"all", search:"", modal:false, draft:null, bulk:null };
-if(!load()) save();
+// 初回のみ、保存が全く無い場合だけサンプルを書き込む
+if(!Array.isArray(__stored)) save();
 
 const esc = s => String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 
@@ -599,7 +614,7 @@ function restoreJson(file){
         const cats = data.categories.filter(c=>c&&c.id&&c.label).map(c=>({ id:String(c.id), label:String(c.label), color:c.color||"#5B7B8A" }));
         saveCats(cats); CATEGORIES = buildCategories();
       }
-      state.items = clean; save(); render(); alert("復元しました");
+      state.items = clean; __loadedCount = clean.length; save(); render(); alert(`復元しました（${clean.length}件）`);
     } catch(e) {
       alert("このファイルは読み込めませんでした。バックアップ用のJSONファイルを選んでください。");
     }
