@@ -299,7 +299,6 @@ function render(){
           <h1>工房パーツ在庫</h1>
           <div class="sub">
             ${items.length} 種類 ・ 合計 ${total} 個
-            ${lowCount>0 ? `<span class="lowBadge">${ic.warn()} 要補充 ${lowCount}</span>` : ""}
           </div>
           <div id="dirtyBadge">${dirtyBadgeHtml()}</div>
         </div>
