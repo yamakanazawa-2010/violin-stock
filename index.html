@@ -66,6 +66,7 @@
 
   /* サイズ別在庫の行 */
   .sizeRows { display:flex; flex-direction:column; gap:8px; }
+  .noStock { font-size:13.5px; color:#9a8f82; padding:10px 4px; }
   .sizeRow { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#faf7f1; border:1px solid #efe7d8; border-radius:12px; padding:8px 10px; }
   .sizeRow.low { background:#fffaf0; border-color:#f0d8b0; }
   .sizeRow.out { background:#fbf3f3; border-color:#eccccc; }
@@ -259,7 +260,7 @@ if(Array.isArray(__stored) && __stored.length){
   __init = SEED;
 }
 __loadedCount = __init.length;
-const state = { items: __init, filter:"all", sizeFilter:"all", search:"", modal:false, draft:null, bulk:null };
+const state = { items: __init, filter:"all", sizeFilter:"all", search:"", sortBy:"none", modal:false, draft:null, bulk:null };
 // 起動直後はまだ保存扱いにしない
 __dirty = false;
 
@@ -270,17 +271,26 @@ const itemTotal = it => (it.stocks||[]).reduce((s,r)=>s+(+r.qty||0),0);
 const itemLow = it => (it.stocks||[]).some(r => (+r.qty||0) <= (+r.min||0));
 
 // ── 描画 ─────────────────────────
-function render(){
-  const app = document.getElementById("app");
-  const items = state.items;
-  const lowCount = items.filter(itemLow).length;
-  const total = items.reduce((s,it)=>s+itemTotal(it),0);
-  const filtered = items.filter(it => {
+function computeFiltered(){
+  let list = state.items.filter(it => {
     if(state.filter!=="all" && it.category!==state.filter) return false;
     if(state.sizeFilter!=="all" && !(it.stocks||[]).some(r=>(r.size||"none")===state.sizeFilter)) return false;
     if(!it.name.toLowerCase().includes(state.search.toLowerCase())) return false;
     return true;
   });
+  if(state.sortBy==="name_asc"){
+    list = list.slice().sort((a,b)=> a.name.localeCompare(b.name, "ja"));
+  } else if(state.sortBy==="name_desc"){
+    list = list.slice().sort((a,b)=> b.name.localeCompare(a.name, "ja"));
+  }
+  return list;
+}
+
+function render(){
+  const app = document.getElementById("app");
+  const items = state.items;
+  const total = items.reduce((s,it)=>s+itemTotal(it),0);
+  const filtered = computeFiltered();
 
   app.innerHTML = `
     <div class="wrap">
@@ -321,14 +331,15 @@ function render(){
         ${SIZES.map(s=>`<button class="sizeChip" data-size="${s.id}" style="${state.sizeFilter===s.id?"background:#3d332a;color:#fff;border-color:#3d332a":""}">${s.label}</button>`).join("")}
       </div>
 
-      <div class="list">
-        ${filtered.length===0 ? `
-          <div class="empty">
-            ${ic.pkg()}
-            <p class="t">該当するパーツがありません</p>
-            <p style="font-size:14px">右上の「追加」から登録できます</p>
-          </div>` :
-          filtered.map(cardHtml).join("")}
+      <div class="filterLabel">並び替え</div>
+      <div class="chips" id="sortChips">
+        <button class="chip" data-sort="none" style="${state.sortBy==="none"?"background:#3d332a;color:#fff;border-color:#3d332a":""}">登録順</button>
+        <button class="chip" data-sort="name_asc" style="${state.sortBy==="name_asc"?"background:#3d332a;color:#fff;border-color:#3d332a":""}">名前順（あ→ん）</button>
+        <button class="chip" data-sort="name_desc" style="${state.sortBy==="name_desc"?"background:#3d332a;color:#fff;border-color:#3d332a":""}">名前順（ん→あ）</button>
+      </div>
+
+      <div class="list" id="listArea">
+        ${listHtml(filtered)}
       </div>
     </div>
     ${state.modal ? modalHtml() : ""}
@@ -337,14 +348,28 @@ function render(){
   bind();
 }
 
+function listHtml(filtered){
+  if(filtered.length===0){
+    return `
+      <div class="empty">
+        ${ic.pkg()}
+        <p class="t">該当するパーツがありません</p>
+        <p style="font-size:14px">右上の「追加」から登録できます</p>
+      </div>`;
+  }
+  return filtered.map(cardHtml).join("");
+}
+
 function cardHtml(it){
   const cat = catById(it.category);
-  const low = itemLow(it);
   const total = itemTotal(it);
-  // サイズフィルター中はその行だけ表示
-  const rows = (it.stocks||[]).filter(r => state.sizeFilter==="all" || (r.size||"none")===state.sizeFilter);
+  // サイズフィルター中はその行だけ表示。かつ在庫0のサイズは表示しない(改修3)
+  const rows = (it.stocks||[]).filter(r =>
+    (state.sizeFilter==="all" || (r.size||"none")===state.sizeFilter) &&
+    (+r.qty||0) > 0
+  );
   return `
-    <div class="card ${low?"low":""}">
+    <div class="card">
       <div class="leftCol">
         <button class="thumb thumbBtn" data-edit="${it.id}">
           ${it.photo ? `<img src="${it.photo}" alt="">` :
@@ -364,7 +389,7 @@ function cardHtml(it){
         </div>
         <div class="name">${esc(it.name)}</div>
         <div class="sizeRows">
-          ${rows.map(r=>sizeRowHtml(it.id, r)).join("")}
+          ${rows.length ? rows.map(r=>sizeRowHtml(it.id, r)).join("") : `<div class="noStock">在庫なし（「まとめて増減」から補充できます）</div>`}
         </div>
         <div class="rowActions">
           <button class="bulkBtn" data-bulk="${it.id}">まとめて増減</button>
@@ -376,10 +401,8 @@ function cardHtml(it){
 function sizeRowHtml(itemId, r){
   const size = r.size || "none";
   const qty = +r.qty||0, min = +r.min||0;
-  const low = qty<=min, out = qty===0;
-  const numColor = out?"#b23b3b":low?"#c07a1e":"#2f2820";
   return `
-    <div class="sizeRow ${out?"out":low?"low":""}">
+    <div class="sizeRow">
       <div class="sizeRowLabel">
         <span class="sizeRowSize">${sizeLabel(size)}</span>
         <span class="sizeRowMin">最低 ${min}</span>
@@ -387,7 +410,7 @@ function sizeRowHtml(itemId, r){
       <div class="rowCounter">
         <button class="stepBtn" data-dec="${itemId}" data-size="${size}" ${qty===0?"disabled":""}>${ic.minus(24,3)}</button>
         <div class="qtyBox">
-          <span class="qtyNum" style="color:${numColor}">${qty}</span>
+          <span class="qtyNum" style="color:#2f2820">${qty}</span>
           <span class="qtyUnit">個</span>
         </div>
         <button class="stepBtn" data-inc="${itemId}" data-size="${size}">${ic.plus(24,3)}</button>
@@ -688,15 +711,34 @@ function bind(){
   q("restoreInput").onchange = e => { const f=e.target.files[0]; if(f){ restoreJson(f); e.target.value=""; } };
 
   const s = q("search");
-  if(s) s.oninput = e => { state.search=e.target.value; const p=e.target.selectionStart; render(); const n=document.getElementById("search"); if(n){ n.focus(); n.setSelectionRange(p,p);} };
+  if(s){
+    let __composing = false;
+    s.addEventListener("compositionstart", ()=>{ __composing = true; });
+    s.addEventListener("compositionend", e => { __composing = false; state.search = e.target.value; refreshList(); });
+    s.addEventListener("input", e => {
+      // 日本語変換の確定前(composition中)は反応しない=二重入力・文字化け防止
+      if(__composing) return;
+      state.search = e.target.value;
+      refreshList();
+    });
+  }
   if(q("clearSearch")) q("clearSearch").onclick = () => { state.search=""; render(); };
 
   document.querySelectorAll("[data-cat]").forEach(b=> b.onclick=()=>{ state.filter=b.dataset.cat; render(); });
+  document.querySelectorAll("[data-sort]").forEach(b=> b.onclick=()=>{ state.sortBy=b.dataset.sort; render(); });
   document.querySelectorAll("[data-size]").forEach(b=>{
     if(b.hasAttribute("data-inc")||b.hasAttribute("data-dec")) return; // カウンターは別処理
     b.onclick=()=>{ state.sizeFilter=b.dataset.size; render(); };
   });
   // サイズ別カウンター
+  bindListEvents();
+
+  if(state.modal) bindModal(q);
+  if(state.bulk) bindBulk(q);
+}
+
+// リスト内のボタンのイベント(検索でリストだけ更新したときも貼り直す)
+function bindListEvents(){
   document.querySelectorAll("[data-inc]").forEach(b=> b.onclick=()=>{ chgSize(b.dataset.inc, b.dataset.size, 1); });
   document.querySelectorAll("[data-dec]").forEach(b=> b.onclick=()=>{ chgSize(b.dataset.dec, b.dataset.size, -1); });
   document.querySelectorAll("[data-bulk]").forEach(b=> b.onclick=()=>{ state.bulk={ id:b.dataset.bulk, mode:"in", n:10, size:null }; render(); });
@@ -709,9 +751,14 @@ function bind(){
     state.draft = { editId:it.id, name:it.name, category:it.category, photo:it.photo||null, condNew:!!it.condNew, condUsed:!!it.condUsed, stocks };
     state.modal = true; render();
   });
+}
 
-  if(state.modal) bindModal(q);
-  if(state.bulk) bindBulk(q);
+// 検索・並びでリスト部分だけ更新(入力欄のフォーカスを保つ)
+function refreshList(){
+  const area = document.getElementById("listArea");
+  if(!area) { render(); return; }
+  area.innerHTML = listHtml(computeFiltered());
+  bindListEvents();
 }
 
 function bindModal(q){
@@ -740,10 +787,10 @@ function bindModal(q){
   });
   document.querySelectorAll("[data-szq]").forEach(inp=> inp.oninput=e=>{ state.draft.stocks[inp.dataset.szq].qty=e.target.value; });
   document.querySelectorAll("[data-szm]").forEach(inp=> inp.oninput=e=>{ state.draft.stocks[inp.dataset.szm].min=e.target.value; });
-  document.querySelectorAll("[data-szqd]").forEach(b=> b.onclick=()=>{ const r=state.draft.stocks[b.dataset.szqd]; r.qty=Math.max(0,(+r.qty||0)-1); render(); });
-  document.querySelectorAll("[data-szqi]").forEach(b=> b.onclick=()=>{ const r=state.draft.stocks[b.dataset.szqi]; r.qty=(+r.qty||0)+1; render(); });
-  document.querySelectorAll("[data-szmd]").forEach(b=> b.onclick=()=>{ const r=state.draft.stocks[b.dataset.szmd]; r.min=Math.max(0,(+r.min||0)-1); render(); });
-  document.querySelectorAll("[data-szmi]").forEach(b=> b.onclick=()=>{ const r=state.draft.stocks[b.dataset.szmi]; r.min=(+r.min||0)+1; render(); });
+  document.querySelectorAll("[data-szqd]").forEach(b=> b.onclick=()=>{ const id=b.dataset.szqd; const r=state.draft.stocks[id]; r.qty=Math.max(0,(+r.qty||0)-1); const inp=document.querySelector(`[data-szq="${id}"]`); if(inp) inp.value=r.qty; });
+  document.querySelectorAll("[data-szqi]").forEach(b=> b.onclick=()=>{ const id=b.dataset.szqi; const r=state.draft.stocks[id]; r.qty=(+r.qty||0)+1; const inp=document.querySelector(`[data-szq="${id}"]`); if(inp) inp.value=r.qty; });
+  document.querySelectorAll("[data-szmd]").forEach(b=> b.onclick=()=>{ const id=b.dataset.szmd; const r=state.draft.stocks[id]; r.min=Math.max(0,(+r.min||0)-1); const inp=document.querySelector(`[data-szm="${id}"]`); if(inp) inp.value=r.min; });
+  document.querySelectorAll("[data-szmi]").forEach(b=> b.onclick=()=>{ const id=b.dataset.szmi; const r=state.draft.stocks[id]; r.min=(+r.min||0)+1; const inp=document.querySelector(`[data-szm="${id}"]`); if(inp) inp.value=r.min; });
 
   q("photoPick").onclick = () => q("photoInput").click();
   q("photoInput").onchange = e => {
@@ -802,7 +849,10 @@ function chgSize(itemId, size, delta){
   const r = (it.stocks||[]).find(x=>x.size===size);
   if(!r) return;
   r.qty = Math.max(0, (+r.qty||0)+delta);
-  save(); render();
+  save();
+  const y = window.scrollY;          // 今の表示位置を覚える
+  render();
+  window.scrollTo(0, y);             // 元の位置に戻す
 }
 
 render();
