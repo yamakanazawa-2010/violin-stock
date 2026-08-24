@@ -26,6 +26,9 @@
   h1 { font-size:28px; font-weight:800; letter-spacing:.02em; }
   .sub { margin-top:6px; font-size:14px; color:#7a6f62; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .lowBadge { display:inline-flex; align-items:center; gap:4px; background:#fbe9d6; color:#c07a1e; padding:2px 9px; border-radius:999px; font-size:12.5px; font-weight:700; }
+  .bkNote { display:inline-flex; align-items:center; gap:4px; margin-top:7px; font-size:12.5px; font-weight:700; padding:3px 10px; border-radius:999px; }
+  .bkNote.okBk { background:#e7f0ea; color:#2f6d4f; }
+  .bkNote.warnBk { background:#fadede; color:#b23b3b; }
   .headBtns { display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
   .addBtn { display:flex; align-items:center; gap:6px; background:#3d332a; color:#fff; border:none; border-radius:14px; padding:12px 18px; font-size:16px; font-weight:700; box-shadow:0 3px 10px rgba(61,51,42,.25); }
   .xlsxBtn { display:flex; align-items:center; gap:6px; background:#fff; color:#3d332a; border:1.5px solid #d9cdbb; border-radius:14px; padding:10px 16px; font-size:14px; font-weight:700; }
@@ -281,6 +284,12 @@ function render(){
             ${items.length} 種類 ・ 合計 ${total} 個
             ${lowCount>0 ? `<span class="lowBadge">${ic.warn()} 要補充 ${lowCount}</span>` : ""}
           </div>
+          ${(() => {
+            const b = lastBackupInfo();
+            if(b.never) return `<div class="bkNote warnBk">${ic.warn()} まだバックアップを取っていません</div>`;
+            if(b.days >= 3) return `<div class="bkNote warnBk">${ic.warn()} 最終バックアップ ${b.label}（${b.days}日前）</div>`;
+            return `<div class="bkNote okBk">最終バックアップ ${b.label}</div>`;
+          })()}
         </div>
         <div class="headBtns">
           <button class="addBtn" id="openAdd">${ic.plus()}<span>追加</span></button>
@@ -583,6 +592,21 @@ function backupJson(){
   a.download = `工房在庫_バックアップ_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  // 最終バックアップ日時を記録
+  try { localStorage.setItem("violin_last_backup", String(Date.now())); } catch(e){}
+  render();
+}
+
+// 最終バックアップからの経過を返す
+function lastBackupInfo(){
+  let ts = 0;
+  try { ts = +localStorage.getItem("violin_last_backup") || 0; } catch(e){}
+  if(!ts) return { never:true };
+  const d = new Date(ts);
+  const p = n => String(n).padStart(2,"0");
+  const label = `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  const days = Math.floor((Date.now()-ts) / 86400000);
+  return { never:false, label, days };
 }
 
 function restoreJson(file){
@@ -760,6 +784,20 @@ function chgSize(itemId, size, delta){
 }
 
 render();
+
+// 起動時: しばらくバックアップが無ければ一度だけ促す(データが有るときのみ)
+(function(){
+  if(!state.items || state.items.length===0) return;
+  const b = lastBackupInfo();
+  if(b.never || b.days >= 3){
+    setTimeout(()=>{
+      const msg = b.never
+        ? "念のため、今の在庫の控え（バックアップ）を取っておくと安心です。右上の「バックアップ」を押し、Googleドライブなどに保存してください。"
+        : `前回のバックアップから${b.days}日たっています。右上の「バックアップ」で最新の控えを取っておくと安心です。`;
+      alert(msg);
+    }, 600);
+  }
+})();
 </script>
 </body>
 </html>
