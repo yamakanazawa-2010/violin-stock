@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>保存テスト</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:#f7f3ec; color:#2f2820; font-family:'Hiragino Sans',system-ui,sans-serif; padding:26px 20px 60px; -webkit-text-size-adjust:100%; }
+  h1 { font-size:22px; font-weight:800; margin-bottom:8px; }
+  .lead { font-size:14px; color:#7a6f62; line-height:1.7; margin-bottom:22px; }
+  .card { background:#fff; border:1px solid #ece4d6; border-radius:16px; padding:18px; margin-bottom:16px; }
+  .card h2 { font-size:16px; font-weight:800; margin-bottom:10px; }
+  .big { font-size:15px; line-height:1.9; }
+  .ok { color:#2f6d4f; font-weight:800; }
+  .ng { color:#b23b3b; font-weight:800; }
+  button { width:100%; border:none; border-radius:12px; padding:16px; font-size:16px; font-weight:800; margin-top:10px; }
+  .primary { background:#3d332a; color:#fff; }
+  .step { font-size:13.5px; color:#6e6259; line-height:1.8; margin-top:8px; }
+  .num { display:inline-block; width:22px; height:22px; background:#3d332a; color:#fff; border-radius:50%; text-align:center; line-height:22px; font-size:12px; font-weight:800; margin-right:6px; }
+  code { background:#f0e9dd; padding:1px 6px; border-radius:5px; font-size:13px; }
+</style>
+</head>
+<body>
+<h1>保存テスト（localStorage診断）</h1>
+<p class="lead">このiPadのSafariで、データがきちんと保存され続けるかを確認します。在庫アプリが消える原因が「端末側の設定」か「アプリ側」かを切り分けます。</p>
+
+<div class="card">
+  <h2>現在の状態</h2>
+  <div class="big" id="state">確認中…</div>
+</div>
+
+<div class="card">
+  <h2>テスト手順</h2>
+  <p class="step"><span class="num">1</span>下の「テスト値を保存」を押す</p>
+  <p class="step"><span class="num">2</span>このページを完全に閉じる（タブを閉じる）</p>
+  <p class="step"><span class="num">3</span>もう一度このページを開く</p>
+  <p class="step"><span class="num">4</span>上の「現在の状態」に、保存した値と時刻が残っていれば <span class="ok">保存OK</span>。消えていれば <span class="ng">保存NG</span>（端末側でデータが保持されない設定）</p>
+  <button class="primary" onclick="saveTest()">テスト値を保存</button>
+  <div id="msg" class="step"></div>
+</div>
+
+<div class="card">
+  <h2>アプリ本体のデータ状況</h2>
+  <div class="big" id="appdata">確認中…</div>
+</div>
+
+<script>
+function fmt(ts){ if(!ts) return ""; const d=new Date(+ts); const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; }
+
+function refresh(){
+  // テスト値
+  let saved=null;
+  try { saved = localStorage.getItem("__storage_test__"); } catch(e){}
+  const el = document.getElementById("state");
+  if(saved){
+    el.innerHTML = `<span class="ok">✓ 保存が残っています</span><br>保存した時刻：${fmt(saved)}<br><br>→ このiPadでは保存が効いています。`;
+  } else {
+    el.innerHTML = `<span class="ng">保存値はまだありません</span><br>（まだテストしていないか、保存が消えた状態です）`;
+  }
+
+  // アプリ本体データ
+  const ael = document.getElementById("appdata");
+  let out = "";
+  ["violin_inventory_v3","violin_inventory_v2","violin_categories_v1"].forEach(k=>{
+    let v=null; try { v = localStorage.getItem(k); } catch(e){}
+    let info = "なし";
+    if(v){
+      try { const p=JSON.parse(v); info = Array.isArray(p) ? (p.length+"件") : (p&&Array.isArray(p.items)?p.items.length+"件":"あり"); }
+      catch { info = "あり(解析不可)"; }
+    }
+    out += `${k}：<b>${info}</b><br>`;
+  });
+  ael.innerHTML = out;
+}
+
+function saveTest(){
+  try {
+    localStorage.setItem("__storage_test__", String(Date.now()));
+    document.getElementById("msg").innerHTML = '保存しました。<b>このページを閉じて、開き直してください。</b>値が残っていれば保存OKです。';
+    refresh();
+  } catch(e){
+    document.getElementById("msg").innerHTML = '<span class="ng">保存できませんでした。プライベートブラウズか、保存が禁止されている設定です。</span>';
+  }
+}
+
+refresh();
+</script>
+</body>
+</html>
