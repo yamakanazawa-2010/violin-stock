@@ -203,15 +203,22 @@ const SIZES = [
 const sizeLabel = id => (SIZES.find(s=>s.id===id) || {label:"指定なし"}).label;
 
 // ── データ保存 ─────────────────────────
-// 各アイテムは stocks:[{size, qty, min}] を持つ(サイズ別在庫)
+// 【ファイル正本方式】データの本体はiPad内のJSONファイル。
+// localStorageは「開いている間の一時キャッシュ」に過ぎず、容量オーバーで
+// 保存できなくても致命的ではない（ファイルに保存すれば残る）。
 const KEY = "violin_inventory_v3";
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch { return null; } };
-// 保存: 読み込んだ件数より大幅に減っていたら誤消去の疑いとして確認する安全弁つき
 let __loadedCount = 0;
+let __dirty = false; // ファイルに未保存の変更があるか
+// キャッシュ保存: 写真を除いた軽いデータだけ localStorage に試し置き。
+// 失敗しても警告しない（ファイルが正本のため）。写真はキャッシュに入れないので容量オーバーしにくい。
 const save = () => {
+  __dirty = true;
   try {
-    localStorage.setItem(KEY, JSON.stringify(state.items));
-  } catch(e){ console.error(e); alert("保存できませんでした。空き容量をご確認ください。"); }
+    const light = state.items.map(it => ({ ...it, photo: it.photo ? "__omitted__" : null }));
+    localStorage.setItem(KEY, JSON.stringify(light));
+  } catch(e){ /* 容量超過などは無視。ファイル保存が正本 */ }
+  updateDirtyBadge();
 };
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 
@@ -243,18 +250,18 @@ function normalizeItem(it){
   };
 }
 
-// 起動時: 保存済みデータがあればそのまま読む。無ければサンプル。勝手な変換・上書きはしない
+// 起動時: 前回のキャッシュ(文字情報のみ)があれば仮表示。写真はファイルを開くと復活。
 let __stored = load();
 let __init;
 if(Array.isArray(__stored) && __stored.length){
-  __init = __stored.map(normalizeItem);
+  __init = __stored.map(it => normalizeItem({ ...it, photo: it.photo==="__omitted__" ? null : it.photo }));
 } else {
   __init = SEED;
 }
 __loadedCount = __init.length;
 const state = { items: __init, filter:"all", sizeFilter:"all", search:"", modal:false, draft:null, bulk:null };
-// 初回のみ、保存が全く無い場合だけサンプルを書き込む
-if(!Array.isArray(__stored)) save();
+// 起動直後はまだ保存扱いにしない
+__dirty = false;
 
 const esc = s => String(s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 
@@ -284,18 +291,13 @@ function render(){
             ${items.length} 種類 ・ 合計 ${total} 個
             ${lowCount>0 ? `<span class="lowBadge">${ic.warn()} 要補充 ${lowCount}</span>` : ""}
           </div>
-          ${(() => {
-            const b = lastBackupInfo();
-            if(b.never) return `<div class="bkNote warnBk">${ic.warn()} まだバックアップを取っていません</div>`;
-            if(b.days >= 3) return `<div class="bkNote warnBk">${ic.warn()} 最終バックアップ ${b.label}（${b.days}日前）</div>`;
-            return `<div class="bkNote okBk">最終バックアップ ${b.label}</div>`;
-          })()}
+          <div id="dirtyBadge">${dirtyBadgeHtml()}</div>
         </div>
         <div class="headBtns">
           <button class="addBtn" id="openAdd">${ic.plus()}<span>追加</span></button>
           <button class="xlsxBtn" id="exportBtn">${ic.xlsx()}<span>Excel出力</span></button>
-          <button class="xlsxBtn" id="backupBtn">${ic.save(16)}<span>バックアップ</span></button>
-          <button class="xlsxBtn" id="restoreBtn">${ic.load(16)}<span>復元</span></button>
+          <button class="xlsxBtn" id="backupBtn">${ic.save(16)}<span>ファイルに保存</span></button>
+          <button class="xlsxBtn" id="restoreBtn">${ic.load(16)}<span>ファイルを開く</span></button>
           <button class="xlsxBtn" id="mergeBtn">${ic.merge(16)}<span>サイズ違いをまとめる</span></button>
           <input type="file" id="restoreInput" accept="application/json,.json" style="display:none">
         </div>
@@ -580,7 +582,7 @@ function mergeBySizes(){
   alert(`まとめました。\n${beforeCount}件 → ${afterCount}件\n\n実行前のバックアップを自動保存しています。もし結果が意図と違えば「復元」で元に戻せます。`);
 }
 
-// ── バックアップ/復元 ─────────────────────────
+// ── ファイルに保存 / ファイルを開く ─────────────────────────
 function backupJson(){
   const data = { app:"violin-stock", version:3, savedAt:new Date().toISOString(), items:state.items, categories:loadCats() };
   const blob = new Blob([JSON.stringify(data)], { type:"application/json" });
@@ -589,15 +591,16 @@ function backupJson(){
   const p = n => String(n).padStart(2,"0");
   const a = document.createElement("a");
   a.href = url;
-  a.download = `工房在庫_バックアップ_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}.json`;
+  a.download = `工房在庫_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
-  // 最終バックアップ日時を記録
   try { localStorage.setItem("violin_last_backup", String(Date.now())); } catch(e){}
+  __dirty = false;
   render();
+  setTimeout(()=>alert("ファイルを書き出しました。\nこのファイルをGoogleドライブなど安全な場所に保存してください。次回はこのファイルを「ファイルを開く」で読み込みます。"), 300);
 }
 
-// 最終バックアップからの経過を返す
+// 最終保存からの経過
 function lastBackupInfo(){
   let ts = 0;
   try { ts = +localStorage.getItem("violin_last_backup") || 0; } catch(e){}
@@ -605,8 +608,23 @@ function lastBackupInfo(){
   const d = new Date(ts);
   const p = n => String(n).padStart(2,"0");
   const label = `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
-  const days = Math.floor((Date.now()-ts) / 86400000);
-  return { never:false, label, days };
+  return { never:false, label };
+}
+
+// 未保存バッジのHTML
+function dirtyBadgeHtml(){
+  if(__dirty){
+    return `<div class="bkNote warnBk">${ic.warn()} 未保存の変更があります。「ファイルに保存」を押してください</div>`;
+  }
+  const b = lastBackupInfo();
+  if(b.never) return `<div class="bkNote warnBk">${ic.warn()} まだファイルに保存していません</div>`;
+  return `<div class="bkNote okBk">保存済み（最終 ${b.label}）</div>`;
+}
+
+// バッジだけ更新(全体再描画せず軽く)
+function updateDirtyBadge(){
+  const el = document.getElementById("dirtyBadge");
+  if(el) el.innerHTML = dirtyBadgeHtml();
 }
 
 function restoreJson(file){
@@ -633,14 +651,18 @@ function restoreJson(file){
           stocks,
         };
       });
-      if(!confirm(`このバックアップ(${clean.length}件)で今の在庫を置き換えます。よろしいですか?`)) return;
+      if(!confirm(`このファイル(${clean.length}件)を読み込みます。今の表示内容は置き換わります。よろしいですか?`)) return;
       if(Array.isArray(data.categories)){
         const cats = data.categories.filter(c=>c&&c.id&&c.label).map(c=>({ id:String(c.id), label:String(c.label), color:c.color||"#5B7B8A" }));
         saveCats(cats); CATEGORIES = buildCategories();
       }
-      state.items = clean; __loadedCount = clean.length; save(); render(); alert(`復元しました（${clean.length}件）`);
+      state.items = clean; __loadedCount = clean.length;
+      save(); __dirty = false;
+      try { localStorage.setItem("violin_last_backup", String(Date.now())); } catch(e){}
+      render();
+      alert(`ファイルを読み込みました（${clean.length}件）`);
     } catch(e) {
-      alert("このファイルは読み込めませんでした。バックアップ用のJSONファイルを選んでください。");
+      alert("このファイルは読み込めませんでした。工房在庫のJSONファイルを選んでください。");
     }
   };
   r.readAsText(file);
@@ -785,18 +807,20 @@ function chgSize(itemId, size, delta){
 
 render();
 
-// 起動時: しばらくバックアップが無ければ一度だけ促す(データが有るときのみ)
+// 未保存のまま閉じ/離脱しようとしたら警告
+window.addEventListener("beforeunload", e => {
+  if(__dirty){ e.preventDefault(); e.returnValue = ""; }
+});
+
+// 起動時: 保存済みファイルを開くよう案内(一度だけ)
 (function(){
-  if(!state.items || state.items.length===0) return;
-  const b = lastBackupInfo();
-  if(b.never || b.days >= 3){
-    setTimeout(()=>{
-      const msg = b.never
-        ? "念のため、今の在庫の控え（バックアップ）を取っておくと安心です。右上の「バックアップ」を押し、Googleドライブなどに保存してください。"
-        : `前回のバックアップから${b.days}日たっています。右上の「バックアップ」で最新の控えを取っておくと安心です。`;
-      alert(msg);
-    }, 600);
-  }
+  try {
+    if(sessionStorage.getItem("__opened_notice__")) return;
+    sessionStorage.setItem("__opened_notice__", "1");
+  } catch(e){}
+  setTimeout(()=>{
+    alert("この画面は前回の作業内容の仮表示です（写真は表示されていない場合があります）。\n\n最新の在庫を見るには、右上の「ファイルを開く」からGoogleドライブなどに保存したJSONファイルを読み込んでください。\n\n作業して変更したら、必ず「ファイルに保存」で書き出してください。");
+  }, 500);
 })();
 </script>
 </body>
